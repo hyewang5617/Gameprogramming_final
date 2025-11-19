@@ -1,0 +1,82 @@
+# --- Unity 기본 생성 폴더 ---
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Bb]uild/
+[Bb]uilds/
+[Ll]ogs/
+[Mm]emoryCaptures/
+
+# Unity 2021~2023 / Unity 6 Artifacts
+UserSettings/
+Artifacts/
+
+# Multiplayer / Addressables / ShaderCache
+[Hh]ardware[ Ss]tats/
+*.pidb.meta
+*.pidb
+*.booproj
+*.svd
+*.DS_Store
+*.apk
+*.unitypackage
+*.app
+*.aab
+
+# Cache
+[Bb]ee/
+[Bb]urst/
+UnityCache/
+*.cache/
+*.shadercache/
+
+# Visual Studio / JetBrains Rider
+.vs/
+.vscode/
+*.sln
+*.csproj
+*.unityproj
+*.pidb
+*.user
+*.userprefs
+
+# Rider
+.idea/
+*.DotSettings
+
+# OS 관련 파일
+.DS_Store
+Thumbs.db
+
+# Crash reports
+sysinfo.txt
+
+# TextMeshPro (auto-generated)
+[Tt]extMesh Pro/*
+!TextMesh Pro/Resources/*
+
+# Addressables (auto-gen cache)
+Assets/AddressableAssetsData/*/Build/
+Assets/AddressableAssetsData/*/Cache/
+
+# Plastic SCM (Unity Version Control)
+.plastic/
+
+# LFS
+*.psd
+*.tiff
+*.tga
+*.wav
+*.fbx
+*.blend
+*.mp4
+*.mov
+
+# --- 빌드 산출물 ---
+*.exe
+*.dll
+*.iso
+*.x86
+*.x64
+*.apk
+*.aab
