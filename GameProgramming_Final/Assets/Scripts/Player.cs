@@ -4,7 +4,8 @@ using UnityEngine;
 
 public class Player : MonoBehaviour
 {
-    public float jumpPower;
+    public float speed = 5f; // 이동 속도
+    public float jumpPower; //점프 정도
     bool isJump;
     Rigidbody rigid;
 
@@ -12,7 +13,9 @@ public class Player : MonoBehaviour
     {
         isJump = false;
         rigid = GetComponent<Rigidbody>();
-
+        
+        // 구체가 굴러가지 않도록 회전 고정 (X, Z축만)
+        rigid.freezeRotation = true;
     }
 
     void Update()
@@ -29,7 +32,11 @@ public class Player : MonoBehaviour
         float h = Input.GetAxisRaw("Horizontal");
         float v = Input.GetAxisRaw("Vertical");
 
-        rigid.AddForce(new Vector3(h, 0, v), ForceMode.Impulse);
+        // 플레이어가 보는 방향 기준으로 이동
+        Vector3 moveDirection = (transform.right * h + transform.forward * v).normalized;
+        
+        Vector3 targetVelocity = moveDirection * speed;
+        rigid.velocity = new Vector3(targetVelocity.x, rigid.velocity.y, targetVelocity.z);
     }
 
     void OnCollisionEnter(Collision collision)
