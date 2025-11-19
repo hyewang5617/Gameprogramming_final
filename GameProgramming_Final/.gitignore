@@ -1,4 +1,4 @@
-# --- Unity 기본 생성 폴더 ---
+# === Unity 기본 생성 폴더 (재생성되므로 절대 커밋 금지) ===
 [Ll]ibrary/
 [Tt]emp/
 [Oo]bj/
@@ -6,77 +6,105 @@
 [Bb]uilds/
 [Ll]ogs/
 [Mm]emoryCaptures/
-
-# Unity 2021~2023 / Unity 6 Artifacts
 UserSettings/
 Artifacts/
 
-# Multiplayer / Addressables / ShaderCache
-[Hh]ardware[ Ss]tats/
-*.pidb.meta
-*.pidb
-*.booproj
-*.svd
-*.DS_Store
-*.apk
-*.unitypackage
-*.app
-*.aab
-
-# Cache
+# --- Unity 캐시 / 패키지 매니저 / Addressables 임시 ---
+UnityCache/
 [Bb]ee/
 [Bb]urst/
-UnityCache/
 *.cache/
 *.shadercache/
 
-# Visual Studio / JetBrains Rider
+# Addressables / PackageCache / Library 내부 캐시들
+Assets/AddressableAssetsData/*/Build/
+Assets/AddressableAssetsData/*/Cache/
+Library/PackageCache/
+Library/PackageManager/
+
+# --- IDE / 에디터 ---
 .vs/
 .vscode/
+.idea/
 *.sln
 *.csproj
 *.unityproj
-*.pidb
 *.user
 *.userprefs
-
-# Rider
-.idea/
 *.DotSettings
 
-# OS 관련 파일
+# Rider/VS 프러덕트 파일(필요하면 팀 내 합의 후 .sln/.csproj 추적)
+*.pidb
+*.pidb.meta
+
+# --- 운영체제 임시 파일 ---
 .DS_Store
 Thumbs.db
+ehthumbs.db
 
-# Crash reports
+# 에디터 임시 / 백업 / swap
+*.swp
+*.swo
+*~$
+*.tmp
+*.bak
+*.orig
+
+# Crash reports / profiler
 sysinfo.txt
+*.stacktrace
+*.trace
 
-# TextMeshPro (auto-generated)
-[Tt]extMesh Pro/*
-!TextMesh Pro/Resources/*
+# --- TextMeshPro (auto-generated) ---
+# Resources 폴더는 유지해야 함
+[Tt]extMesh Pro/
+!TextMesh Pro/Resources/**
 
-# Addressables (auto-gen cache)
-Assets/AddressableAssetsData/*/Build/
-Assets/AddressableAssetsData/*/Cache/
+# --- Platform / Build Artifacts ---
+*.apk
+*.aab
+*.exe
+*.app
+*.xcodeproj/
+*.xcworkspace/
+*.ipa
+*.obb
 
-# Plastic SCM (Unity Version Control)
-.plastic/
+# Android gradle / keystore / intermediate
+.gradle/
+*.keystore
+*.jks
+.gradle/
+local.properties
 
-# LFS
+# iOS / Xcode
+build/
+*.pbxuser
+*.mode1v3
+*.mode2v3
+*.perspectivev3
+
+# --- Binary / Large files (추천: Git LFS) ---
 *.psd
 *.tiff
 *.tga
 *.wav
-*.fbx
-*.blend
+*.ogg
 *.mp4
 *.mov
+*.fbx
+*.blend
 
-# --- 빌드 산출물 ---
-*.exe
+# --- Unity Generated Assemblies / Debug / Plugins ---
+/Library/ScriptAssemblies/
 *.dll
-*.iso
-*.x86
-*.x64
-*.apk
-*.aab
+*.pdb
+
+# Plastic SCM
+.plastic/
+
+# Misc
+*.unitypackage
+*.log
+
+# === End ===
