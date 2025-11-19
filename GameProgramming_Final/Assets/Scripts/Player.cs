@@ -4,8 +4,10 @@ using UnityEngine;
 
 public class Player : MonoBehaviour
 {
+    [Header("Player Stat")]
     public float speed = 5f; // 이동 속도
     public float jumpPower; //점프 정도
+
     bool isJump;
     Rigidbody rigid;
 
@@ -28,6 +30,11 @@ public class Player : MonoBehaviour
     }
 
     void FixedUpdate()
+    {
+        Move();
+    }
+
+    void Move()
     {
         float h = Input.GetAxisRaw("Horizontal");
         float v = Input.GetAxisRaw("Vertical");
