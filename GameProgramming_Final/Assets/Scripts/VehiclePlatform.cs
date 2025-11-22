@@ -4,10 +4,10 @@ using System;
 public class VehiclePlatform : MonoBehaviour
 {
     [Header("Movement")]
-    public float speed = 10f;
+    public float speed = 10f; // 트럭 이동 속도
     
     [Header("Despawn")]
-    public float despawnDistance = 50f;
+    public float despawnDistance = 50f; // 사라지는 거리
     
     public Action onDestroyed;
     
