@@ -10,11 +10,13 @@ public class Player : MonoBehaviour
 
     bool isJump;
     Rigidbody rigid;
+    Transform originalParent;
 
     void Awake()
     {
         isJump = false;
         rigid = GetComponent<Rigidbody>();
+        originalParent = transform.parent;
         
         // 구체가 굴러가지 않도록 회전 고정 (X, Z축만)
         rigid.freezeRotation = true;
@@ -48,9 +50,67 @@ public class Player : MonoBehaviour
 
     void OnCollisionEnter(Collision collision)
     {
-        if (collision.gameObject.name == "Floor")
+        // 바닥이나 차에 착지
+        isJump = false;
+        
+        // 차 위에 올라탔는지 확인 (위쪽 면에만 착지)
+        if (collision.gameObject.CompareTag("Vehicle"))
         {
-            isJump = false;
+            // 충돌 지점의 노멀 벡터 확인 (위쪽인지 판단)
+            foreach (ContactPoint contact in collision.contacts)
+            {
+                // 노멀 벡터의 y값이 0.5 이상이면 위쪽 면
+                if (contact.normal.y > 0.5f)
+                {
+                    transform.SetParent(collision.transform);
+                    break;
+                }
+            }
+        }
+    }
+
+    void OnCollisionStay(Collision collision)
+    {
+        // 바닥이나 차에 닿아있으면 점프 가능 (옆면도 포함)
+        isJump = false;
+        
+        // 차 위에 계속 있는지 확인
+        if (collision.gameObject.CompareTag("Vehicle"))
+        {
+            bool onTop = false;
+            foreach (ContactPoint contact in collision.contacts)
+            {
+                if (contact.normal.y > 0.5f)
+                {
+                    onTop = true;
+                    break;
+                }
+            }
+            
+            // 위쪽 면에 있지 않으면 부모 관계 해제 (옆으로 미끄러짐)
+            if (!onTop && transform.parent == collision.transform)
+            {
+                transform.SetParent(originalParent);
+            }
+        }
+    }
+
+    void OnCollisionExit(Collision collision)
+    {
+        // 차에서 떨어지면 부모 관계 해제
+        if (collision.gameObject.CompareTag("Vehicle"))
+        {
+            transform.SetParent(originalParent);
+        }
+    }
+
+    void OnTriggerEnter(Collider other)
+    {
+        // 골인 지점 체크
+        if (other.CompareTag("Goal"))
+        {
+            GameManager gm = FindObjectOfType<GameManager>();
+            if (gm != null) gm.LevelComplete();
         }
     }
 }
