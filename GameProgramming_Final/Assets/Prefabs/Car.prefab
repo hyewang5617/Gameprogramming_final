@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1001 &7318864070088233038
+--- !u!1001 &3663845198480565045
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
@@ -62,52 +62,26 @@ PrefabInstance:
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 1248598967819147742, guid: c4cad50aa03bbca42938fe318344950b, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 6799997464839971275}
+      addedObject: {fileID: 247603454596996128}
     - targetCorrespondingSourceObject: {fileID: 1248598967819147742, guid: c4cad50aa03bbca42938fe318344950b, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 9095124581763855073}
+      addedObject: {fileID: 2185891403543259609}
     - targetCorrespondingSourceObject: {fileID: 1532183532590448871, guid: c4cad50aa03bbca42938fe318344950b, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 3869488620118052584}
+      addedObject: {fileID: 3270395643225947688}
   m_SourcePrefab: {fileID: 100100000, guid: c4cad50aa03bbca42938fe318344950b, type: 3}
---- !u!1 &8129767906112917673 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 1532183532590448871, guid: c4cad50aa03bbca42938fe318344950b, type: 3}
-  m_PrefabInstance: {fileID: 7318864070088233038}
-  m_PrefabAsset: {fileID: 0}
---- !u!65 &3869488620118052584
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8129767906112917673}
-  m_Material: {fileID: 13400000, guid: 3193ee234552786439d16e222d5a0286, type: 2}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 2.0594354, y: 1.2289026, z: 4.8205786}
-  m_Center: {x: 0, y: 0.78649104, z: -0.018977284}
---- !u!1 &8413355485985311120 stripped
+--- !u!1 &2561279276807879403 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 1248598967819147742, guid: c4cad50aa03bbca42938fe318344950b, type: 3}
-  m_PrefabInstance: {fileID: 7318864070088233038}
+  m_PrefabInstance: {fileID: 3663845198480565045}
   m_PrefabAsset: {fileID: 0}
---- !u!54 &6799997464839971275
+--- !u!54 &247603454596996128
 Rigidbody:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8413355485985311120}
+  m_GameObject: {fileID: 2561279276807879403}
   serializedVersion: 4
   m_Mass: 1000
   m_Drag: 0.5
@@ -128,17 +102,47 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
---- !u!114 &9095124581763855073
+--- !u!114 &2185891403543259609
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8413355485985311120}
+  m_GameObject: {fileID: 2561279276807879403}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0ed520704cbe86645b7a17b25059423f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  waypoints:
+  - {fileID: 0}
+  - {fileID: 0}
   speed: 5
-  despawnDistance: 50
+  waypointReachDistance: 0.5
+  destroyAtEnd: 1
+--- !u!1 &2854155189461820370 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1532183532590448871, guid: c4cad50aa03bbca42938fe318344950b, type: 3}
+  m_PrefabInstance: {fileID: 3663845198480565045}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &3270395643225947688
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2854155189461820370}
+  m_Material: {fileID: 13400000, guid: 3193ee234552786439d16e222d5a0286, type: 2}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 2.0594354, y: 1.2289026, z: 4.8205786}
+  m_Center: {x: 0, y: 0.78649104, z: -0.018977284}

@@ -3,16 +3,40 @@ using UnityEngine;
 public class VehicleSpawner : MonoBehaviour
 {
     [Header("Spawn Settings")]
-    [Tooltip("생성할 트럭 프리팹")]
+    [Tooltip("생성할 차량 프리팹")]
     public GameObject vehiclePrefab;
-    public float spawnInterval = 3f; // 생성 주기 (초)
-    public int maxVehicles = 10; // 최대 트럭 수
+    [Tooltip("차량 생성 주기 (초)")]
+    public float spawnInterval = 3f;
+    [Tooltip("동시에 존재 가능한 최대 차량 수")]
+    public int maxVehicles = 10;
+    
+    [Header("Waypoint Path")]
+    [Tooltip("차량이 따라갈 웨이포인트 경로")]
+    public Transform waypointPath;
     
     [Header("Spawn Area")]
-    public Vector3 spawnAreaSize = new Vector3(20f, 0f, 5f); // 생성 영역 크기
+    [Tooltip("차량 생성 영역 크기")]
+    public Vector3 spawnAreaSize = new Vector3(20f, 0f, 5f);
     
     float timer = 0f;
     int currentVehicles = 0;
+    Transform[] waypoints;
+
+    void Awake()
+    {
+        if (waypointPath != null)
+        {
+            int count = waypointPath.childCount;
+            waypoints = new Transform[count];
+            
+            for (int i = 0; i < count; i++)
+                waypoints[i] = waypointPath.GetChild(i);
+        }
+        else
+        {
+            Debug.LogWarning("[VehicleSpawner] waypointPath 미설정");
+        }
+    }
 
     void Update()
     {
@@ -27,11 +51,7 @@ public class VehicleSpawner : MonoBehaviour
 
     void SpawnVehicle()
     {
-        if (vehiclePrefab == null)
-        {
-            Debug.LogWarning("[VehicleSpawner] vehiclePrefab 없음");
-            return;
-        }
+        if (vehiclePrefab == null) return;
 
         // 랜덤 위치 계산
         Vector3 randomOffset = new Vector3(
@@ -42,21 +62,21 @@ public class VehicleSpawner : MonoBehaviour
         
         Vector3 spawnPos = transform.position + randomOffset;
         
-        // 트럭 생성
+        // 차량 생성
         GameObject vehicle = Instantiate(vehiclePrefab, spawnPos, transform.rotation);
         currentVehicles++;
         
-        // 트럭이 사라질 때 카운트 감소
+        // 웨이포인트 할당
         VehiclePlatform platform = vehicle.GetComponent<VehiclePlatform>();
         if (platform != null)
         {
+            platform.waypoints = waypoints;
             platform.onDestroyed += () => currentVehicles--;
         }
     }
 
     void OnDrawGizmosSelected()
     {
-        // 에디터에서 스폰 영역 표시
         Gizmos.color = Color.yellow;
         Gizmos.DrawWireCube(transform.position, spawnAreaSize);
     }
