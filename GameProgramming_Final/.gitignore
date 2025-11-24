@@ -92,7 +92,7 @@ build/
 *.ogg
 *.mp4
 *.mov
-*.fbx
+# *.fbx  # 자동차 에셋 때문에 주석 처리
 *.blend
 
 # --- Unity Generated Assemblies / Debug / Plugins ---

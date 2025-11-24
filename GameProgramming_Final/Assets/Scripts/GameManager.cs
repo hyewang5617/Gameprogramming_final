@@ -4,11 +4,13 @@ using UnityEngine.SceneManagement;
 public class GameManager : MonoBehaviour
 {
     [Header("References")]
+    [Tooltip("플레이어 Transform")]
     public Transform player;
+    [Tooltip("리스폰 지점")]
     public Transform spawnPoint;
     
     [Header("Death Settings")]
-    public float deathHeight = -10f;
+    public float deathHeight = -10f; // 사망 처리 높이
 
     void Update()
     {
