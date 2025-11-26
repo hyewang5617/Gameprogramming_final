@@ -4,21 +4,15 @@ using System;
 public class VehiclePlatform : MonoBehaviour
 {
     [Header("Waypoint Settings")]
-    [Tooltip("차가 따라갈 웨이포인트들 (순서대로)")]
     public Transform[] waypoints;
     
     [Header("Movement")]
-    [Tooltip("차의 이동 속도")]
     public float speed = 10f;
-    [Tooltip("웨이포인트 도착 인식 거리")]
     public float waypointReachDistance = 0.5f;
-    [Tooltip("회전 속도")]
     public float rotationSpeed = 5f;
-    [Tooltip("목표 방향으로 가는 힘")]
     public float moveForce = 1000f;
     
     [Header("Despawn")]
-    [Tooltip("마지막 웨이포인트 도착 후 사라짐")]
     public bool destroyAtEnd = true;
     
     public Action onDestroyed;

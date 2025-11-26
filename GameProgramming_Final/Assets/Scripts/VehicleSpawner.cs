@@ -3,19 +3,14 @@ using UnityEngine;
 public class VehicleSpawner : MonoBehaviour
 {
     [Header("Spawn Settings")]
-    [Tooltip("생성할 차량 프리팹")]
     public GameObject vehiclePrefab;
-    [Tooltip("차량 생성 주기 (초)")]
     public float spawnInterval = 3f;
-    [Tooltip("동시에 존재 가능한 최대 차량 수")]
     public int maxVehicles = 10;
     
     [Header("Waypoint Path")]
-    [Tooltip("차량이 따라갈 웨이포인트 경로")]
     public Transform waypointPath;
     
     [Header("Spawn Area")]
-    [Tooltip("차량 생성 영역 크기")]
     public Vector3 spawnAreaSize = new Vector3(20f, 0f, 5f);
     
     float timer = 0f;

@@ -4,17 +4,13 @@ using UnityEngine.SceneManagement;
 public class GameManager : MonoBehaviour
 {
     [Header("References")]
-    [Tooltip("플레이어 Transform")]
     public Transform player;
     
     [Header("UI")]
-    [Tooltip("게임오버 패널")]
     public GameObject gameOverPanel;
-    [Tooltip("레벨 클리어 패널")]
     public GameObject levelCompletePanel;
     
     [Header("Death Settings")]
-    [Tooltip("사망 처리 높이")]
     public float deathHeight = -10f;
 
     bool isGameOver = false;
@@ -64,28 +60,13 @@ public class GameManager : MonoBehaviour
 
     public void LevelComplete()
     {
-        Debug.Log("[GameManager] LevelComplete() 호출됨!");
-        
-        if (isLevelComplete)
-        {
-            Debug.Log("[GameManager] 이미 클리어 상태임");
-            return;
-        }
+        if (isLevelComplete) return;
         
         isLevelComplete = true;
-        Time.timeScale = 0f; // 게임 정지
-        
-        Debug.Log($"[GameManager] levelCompletePanel null? {levelCompletePanel == null}");
+        Time.timeScale = 0f;
         
         if (levelCompletePanel != null)
-        {
             levelCompletePanel.SetActive(true);
-            Debug.Log("[GameManager] levelCompletePanel 활성화됨!");
-        }
-        else
-        {
-            Debug.LogWarning("[GameManager] levelCompletePanel이 할당되지 않았습니다!");
-        }
     }
 
     void RestartLevel()
