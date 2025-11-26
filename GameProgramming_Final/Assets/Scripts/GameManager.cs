@@ -4,49 +4,75 @@ using UnityEngine.SceneManagement;
 public class GameManager : MonoBehaviour
 {
     [Header("References")]
-    [Tooltip("플레이어 Transform")]
     public Transform player;
-    [Tooltip("리스폰 지점")]
-    public Transform spawnPoint;
+    
+    [Header("UI")]
+    public GameObject gameOverPanel;
+    public GameObject levelCompletePanel;
     
     [Header("Death Settings")]
-    public float deathHeight = -10f; // 사망 처리 높이
+    public float deathHeight = -10f;
+
+    bool isGameOver = false;
+    bool isLevelComplete = false;
+
+    void Start()
+    {
+        if (gameOverPanel != null)
+            gameOverPanel.SetActive(false);
+        if (levelCompletePanel != null)
+            levelCompletePanel.SetActive(false);
+    }
 
     void Update()
     {
-        if (player == null) return;
-
-        // 바닥 아래로 떨어지면 재시작
-        if (player.position.y < deathHeight)
+        // 게임오버 상태에서 아무 키나 누르면 재시작
+        if (isGameOver && Input.anyKeyDown)
         {
-            Respawn();
+            RestartLevel();
+            return;
+        }
+
+        // 레벨 클리어 상태에서 아무 키나 누르면 재시작
+        if (isLevelComplete && Input.anyKeyDown)
+        {
+            RestartLevel();
+            return;
+        }
+
+        // 플레이어 사망 체크
+        if (player != null && player.position.y < deathHeight)
+        {
+            GameOver();
         }
     }
 
-    public void Respawn()
+    void GameOver()
     {
-        if (spawnPoint != null)
-        {
-            player.position = spawnPoint.position;
-            
-            // 플레이어 Rigidbody 속도 초기화
-            Rigidbody rb = player.GetComponent<Rigidbody>();
-            if (rb != null)
-            {
-                rb.velocity = Vector3.zero;
-                rb.angularVelocity = Vector3.zero;
-            }
-        }
-        else
-        {
-            SceneManager.LoadScene(SceneManager.GetActiveScene().name);
-        }
+        if (isGameOver) return;
+        
+        isGameOver = true;
+        Time.timeScale = 0f; // 게임 정지
+        
+        if (gameOverPanel != null)
+            gameOverPanel.SetActive(true);
     }
 
     public void LevelComplete()
     {
-        Debug.Log("레벨 클리어!");
-        // 다음 레벨 또는 메뉴로 이동
+        if (isLevelComplete) return;
+        
+        isLevelComplete = true;
+        Time.timeScale = 0f;
+        
+        if (levelCompletePanel != null)
+            levelCompletePanel.SetActive(true);
+    }
+
+    void RestartLevel()
+    {
+        Time.timeScale = 1f; // 게임 재개
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 }
 

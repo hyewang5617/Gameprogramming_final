@@ -3,11 +3,11 @@ using UnityEngine;
 public class Player : MonoBehaviour
 {
     [Header("Movement")]
-    public float speed = 5f; // 이동 속도
+    public float speed = 5f;
     
     [Header("Jump")]
-    public float jumpPower = 5f; // 점프 파워
-    public float jumpCooldown = 0.1f; // 점프 쿨타임 (연타 방지)
+    public float jumpPower = 5f;
+    public float jumpCooldown = 0.1f;
 
     bool isJump;
     float lastJumpTime = -999f;
@@ -51,6 +51,14 @@ public class Player : MonoBehaviour
     void CheckLanding()
     {
         if (Time.time - lastJumpTime > jumpCooldown)
+        {
+            isJump = false;
+        }
+    }
+
+    public void SetGrounded(bool grounded)
+    {
+        if (grounded && Time.time - lastJumpTime > jumpCooldown)
         {
             isJump = false;
         }
