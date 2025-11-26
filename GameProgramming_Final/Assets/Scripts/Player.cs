@@ -55,4 +55,12 @@ public class Player : MonoBehaviour
             isJump = false;
         }
     }
+
+    public void SetGrounded(bool grounded)
+    {
+        if (grounded && Time.time - lastJumpTime > jumpCooldown)
+        {
+            isJump = false;
+        }
+    }
 }

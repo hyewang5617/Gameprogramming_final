@@ -14,6 +14,8 @@ public class VehiclePlatform : MonoBehaviour
     public float waypointReachDistance = 0.5f;
     [Tooltip("회전 속도")]
     public float rotationSpeed = 5f;
+    [Tooltip("목표 방향으로 가는 힘")]
+    public float moveForce = 1000f;
     
     [Header("Despawn")]
     [Tooltip("마지막 웨이포인트 도착 후 사라짐")]
@@ -22,9 +24,24 @@ public class VehiclePlatform : MonoBehaviour
     public Action onDestroyed;
     
     int currentWaypointIndex = 0;
+    Rigidbody rigid;
 
     void Start()
     {
+        rigid = GetComponent<Rigidbody>();
+        if (rigid != null)
+        {
+            rigid.isKinematic = false; // 물리 적용
+            rigid.useGravity = true; // 중력 적용!
+            rigid.mass = 500f; // 무거운 트럭
+            rigid.drag = 0.5f; // 공기 저항
+            rigid.angularDrag = 5f; // 회전 저항
+        }
+        else
+        {
+            Debug.LogWarning("[VehiclePlatform] Rigidbody가 없습니다!");
+        }
+        
         if (waypoints == null || waypoints.Length == 0)
             Debug.LogWarning("[VehiclePlatform] 웨이포인트 미설정");
     }
@@ -33,20 +50,31 @@ public class VehiclePlatform : MonoBehaviour
     {
         if (waypoints == null || waypoints.Length == 0) return;
         if (currentWaypointIndex >= waypoints.Length) return;
+        if (rigid == null) return;
         
         Transform target = waypoints[currentWaypointIndex];
         if (target == null) return;
         
-        // 목표 방향으로 회전
+        // 목표 방향 계산
         Vector3 direction = (target.position - transform.position).normalized;
+        
         if (direction.magnitude > 0.01f)
         {
+            // 회전 (부드럽게)
             Quaternion targetRotation = Quaternion.LookRotation(direction);
-            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.fixedDeltaTime * rotationSpeed);
+            rigid.rotation = Quaternion.Slerp(rigid.rotation, targetRotation, Time.fixedDeltaTime * rotationSpeed);
         }
         
-        // 이동
-        transform.position += transform.forward * speed * Time.fixedDeltaTime;
+        // 직접 힘 추가 (충돌해도 계속 전진!)
+        rigid.AddForce(direction * moveForce * Time.fixedDeltaTime, ForceMode.Acceleration);
+        
+        // 최대 속도 제한
+        Vector3 horizontalVelocity = new Vector3(rigid.velocity.x, 0, rigid.velocity.z);
+        if (horizontalVelocity.magnitude > speed)
+        {
+            horizontalVelocity = horizontalVelocity.normalized * speed;
+            rigid.velocity = new Vector3(horizontalVelocity.x, rigid.velocity.y, horizontalVelocity.z);
+        }
         
         // 웨이포인트 도착 체크
         float distance = Vector3.Distance(transform.position, target.position);
