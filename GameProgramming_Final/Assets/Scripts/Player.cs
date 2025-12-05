@@ -4,14 +4,14 @@ public class Player : MonoBehaviour
 {
     [Header("Movement")]
     public float speed = 5f;
+    public float sprintSpeed = 10f;
     
     [Header("Jump")]
     public float jumpPower = 5f;
-    public float jumpCooldown = 0.1f;
 
-    bool isJump;
-    float lastJumpTime = -999f;
+    bool isGrounded = true;
     Rigidbody rigid;
+    bool onVehicle = false;
 
     void Awake()
     {
@@ -21,46 +21,69 @@ public class Player : MonoBehaviour
 
     void Update()
     {
-        if (Input.GetButtonDown("Jump") && !isJump && Time.time - lastJumpTime > jumpCooldown)
+        if (Input.GetButtonDown("Jump") && isGrounded)
         {
-            isJump = true;
-            lastJumpTime = Time.time;
+            isGrounded = false;
             rigid.AddForce(Vector3.up * jumpPower, ForceMode.Impulse);
         }
     }
 
     void FixedUpdate()
     {
+        if (onVehicle) return;
+
+        Vector3 move = GetMoveVector();
+        rigid.velocity = new Vector3(move.x, rigid.velocity.y, move.z);
+    }
+
+    public Vector3 GetPlayerInput()
+    {
+        return GetMoveVector();
+    }
+
+    Vector3 GetMoveVector()
+    {
         float h = Input.GetAxisRaw("Horizontal");
         float v = Input.GetAxisRaw("Vertical");
-
+        float moveSpeed = isGrounded && Input.GetKey(KeyCode.LeftShift) ? sprintSpeed : speed;
         Vector3 moveDir = (transform.right * h + transform.forward * v).normalized;
-        rigid.velocity = new Vector3(moveDir.x * speed, rigid.velocity.y, moveDir.z * speed);
+        return moveDir * moveSpeed;
+    }
+
+    public void SetOnVehicle(bool onVehicle)
+    {
+        this.onVehicle = onVehicle;
     }
 
     void OnCollisionEnter(Collision collision)
     {
-        CheckLanding();
+        CheckGrounded(collision);
     }
 
     void OnCollisionStay(Collision collision)
     {
-        CheckLanding();
+        CheckGrounded(collision);
     }
 
-    void CheckLanding()
+    void OnCollisionExit(Collision collision)
     {
-        if (Time.time - lastJumpTime > jumpCooldown)
+        isGrounded = false;
+    }
+
+    void CheckGrounded(Collision collision)
+    {
+        foreach (ContactPoint contact in collision.contacts)
         {
-            isJump = false;
+            if (contact.normal.y > 0.5f)
+            {
+                isGrounded = true;
+                return;
+            }
         }
     }
 
     public void SetGrounded(bool grounded)
     {
-        if (grounded && Time.time - lastJumpTime > jumpCooldown)
-        {
-            isJump = false;
-        }
+        if (grounded) isGrounded = true;
     }
 }

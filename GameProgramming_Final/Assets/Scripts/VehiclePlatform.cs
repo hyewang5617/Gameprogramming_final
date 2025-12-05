@@ -8,7 +8,7 @@ public class VehiclePlatform : MonoBehaviour
     
     [Header("Movement")]
     public float speed = 10f;
-    public float waypointReachDistance = 0.5f;
+    public float waypointReachDistance = 5f;
     public float rotationSpeed = 5f;
     public float moveForce = 1000f;
     
@@ -25,19 +25,12 @@ public class VehiclePlatform : MonoBehaviour
         rigid = GetComponent<Rigidbody>();
         if (rigid != null)
         {
-            rigid.isKinematic = false; // 물리 적용
-            rigid.useGravity = true; // 중력 적용!
-            rigid.mass = 500f; // 무거운 트럭
-            rigid.drag = 0.5f; // 공기 저항
-            rigid.angularDrag = 5f; // 회전 저항
+            rigid.isKinematic = false;
+            rigid.useGravity = true;
+            rigid.mass = 500f;
+            rigid.drag = 0.5f;
+            rigid.angularDrag = 5f;
         }
-        else
-        {
-            Debug.LogWarning("[VehiclePlatform] Rigidbody가 없습니다!");
-        }
-        
-        if (waypoints == null || waypoints.Length == 0)
-            Debug.LogWarning("[VehiclePlatform] 웨이포인트 미설정");
     }
 
     void FixedUpdate()
@@ -49,20 +42,16 @@ public class VehiclePlatform : MonoBehaviour
         Transform target = waypoints[currentWaypointIndex];
         if (target == null) return;
         
-        // 목표 방향 계산
         Vector3 direction = (target.position - transform.position).normalized;
         
         if (direction.magnitude > 0.01f)
         {
-            // 회전 (부드럽게)
             Quaternion targetRotation = Quaternion.LookRotation(direction);
             rigid.rotation = Quaternion.Slerp(rigid.rotation, targetRotation, Time.fixedDeltaTime * rotationSpeed);
         }
         
-        // 직접 힘 추가 (충돌해도 계속 전진!)
         rigid.AddForce(direction * moveForce * Time.fixedDeltaTime, ForceMode.Acceleration);
         
-        // 최대 속도 제한
         Vector3 horizontalVelocity = new Vector3(rigid.velocity.x, 0, rigid.velocity.z);
         if (horizontalVelocity.magnitude > speed)
         {
@@ -70,13 +59,11 @@ public class VehiclePlatform : MonoBehaviour
             rigid.velocity = new Vector3(horizontalVelocity.x, rigid.velocity.y, horizontalVelocity.z);
         }
         
-        // 웨이포인트 도착 체크
         float distance = Vector3.Distance(transform.position, target.position);
         if (distance < waypointReachDistance)
         {
             currentWaypointIndex++;
             
-            // 마지막 웨이포인트 도착
             if (currentWaypointIndex >= waypoints.Length)
             {
                 if (destroyAtEnd)
@@ -86,13 +73,12 @@ public class VehiclePlatform : MonoBehaviour
                 }
                 else
                 {
-                    currentWaypointIndex = 0; // 반복
+                    currentWaypointIndex = 0;
                 }
             }
         }
     }
     
-    // 에디터에서 경로 시각화
     void OnDrawGizmos()
     {
         if (waypoints == null || waypoints.Length < 2) return;
@@ -103,14 +89,14 @@ public class VehiclePlatform : MonoBehaviour
             if (waypoints[i] != null && waypoints[i + 1] != null)
             {
                 Gizmos.DrawLine(waypoints[i].position, waypoints[i + 1].position);
-                Gizmos.DrawSphere(waypoints[i].position, 0.3f);
+                Gizmos.DrawWireSphere(waypoints[i].position, waypointReachDistance);
             }
         }
         
         if (waypoints[waypoints.Length - 1] != null)
         {
             Gizmos.color = Color.red;
-            Gizmos.DrawSphere(waypoints[waypoints.Length - 1].position, 0.5f);
+            Gizmos.DrawWireSphere(waypoints[waypoints.Length - 1].position, waypointReachDistance);
         }
     }
 }

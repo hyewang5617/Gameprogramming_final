@@ -26,21 +26,18 @@ public class GameManager : MonoBehaviour
 
     void Update()
     {
-        // 게임오버 상태에서 아무 키나 누르면 재시작
         if (isGameOver && Input.anyKeyDown)
         {
             RestartLevel();
             return;
         }
 
-        // 레벨 클리어 상태에서 아무 키나 누르면 재시작
         if (isLevelComplete && Input.anyKeyDown)
         {
             RestartLevel();
             return;
         }
 
-        // 플레이어 사망 체크
         if (player != null && player.position.y < deathHeight)
         {
             GameOver();
@@ -52,7 +49,7 @@ public class GameManager : MonoBehaviour
         if (isGameOver) return;
         
         isGameOver = true;
-        Time.timeScale = 0f; // 게임 정지
+        Time.timeScale = 0f;
         
         if (gameOverPanel != null)
             gameOverPanel.SetActive(true);
@@ -71,7 +68,7 @@ public class GameManager : MonoBehaviour
 
     void RestartLevel()
     {
-        Time.timeScale = 1f; // 게임 재개
+        Time.timeScale = 1f;
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 }

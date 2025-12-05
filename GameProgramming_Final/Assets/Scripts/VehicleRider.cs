@@ -2,35 +2,37 @@ using UnityEngine;
 
 public class VehicleRider : MonoBehaviour
 {
-    Player playerScript;
-    Transform originalParent;
+    Player player;
+    Rigidbody rigid;
+    Transform vehicle;
+    Vector3 localOffset;
 
     void Awake()
     {
-        originalParent = transform.parent;
-        playerScript = GetComponent<Player>();
+        player = GetComponent<Player>();
+        rigid = GetComponent<Rigidbody>();
     }
 
     void OnCollisionEnter(Collision collision)
     {
-        playerScript?.SetGrounded(true);
+        player?.SetGrounded(true);
 
         if (collision.gameObject.CompareTag("Vehicle") && IsOnTop(collision))
         {
-            transform.SetParent(collision.transform);
+            vehicle = collision.transform;
+            localOffset = vehicle.InverseTransformPoint(transform.position);
+            player?.SetOnVehicle(true);
         }
     }
 
     void OnCollisionStay(Collision collision)
     {
-        playerScript?.SetGrounded(true);
+        player?.SetGrounded(true);
 
-        if (collision.gameObject.CompareTag("Vehicle"))
+        if (collision.gameObject.CompareTag("Vehicle") && !IsOnTop(collision))
         {
-            if (!IsOnTop(collision) && transform.parent == collision.transform)
-            {
-                transform.SetParent(originalParent);
-            }
+            vehicle = null;
+            player?.SetOnVehicle(false);
         }
     }
 
@@ -38,7 +40,27 @@ public class VehicleRider : MonoBehaviour
     {
         if (collision.gameObject.CompareTag("Vehicle"))
         {
-            transform.SetParent(originalParent);
+            vehicle = null;
+            player?.SetOnVehicle(false);
+        }
+    }
+
+    void FixedUpdate()
+    {
+        if (vehicle != null && rigid != null)
+        {
+            Rigidbody vehicleRigid = vehicle.GetComponent<Rigidbody>();
+            if (vehicleRigid != null)
+            {
+                Vector3 vehicleVelocity = vehicleRigid.velocity;
+                Vector3 playerInput = player?.GetPlayerInput() ?? Vector3.zero;
+                
+                rigid.velocity = new Vector3(
+                    vehicleVelocity.x + playerInput.x,
+                    rigid.velocity.y,
+                    vehicleVelocity.z + playerInput.z
+                );
+            }
         }
     }
 
@@ -51,4 +73,3 @@ public class VehicleRider : MonoBehaviour
         return false;
     }
 }
-
