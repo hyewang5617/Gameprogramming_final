@@ -27,10 +27,6 @@ public class VehicleSpawner : MonoBehaviour
             for (int i = 0; i < count; i++)
                 waypoints[i] = waypointPath.GetChild(i);
         }
-        else
-        {
-            Debug.LogWarning("[VehicleSpawner] waypointPath 미설정");
-        }
     }
 
     void Update()
@@ -48,7 +44,6 @@ public class VehicleSpawner : MonoBehaviour
     {
         if (vehiclePrefab == null) return;
 
-        // 랜덤 위치 계산
         Vector3 randomOffset = new Vector3(
             Random.Range(-spawnAreaSize.x / 2, spawnAreaSize.x / 2),
             Random.Range(-spawnAreaSize.y / 2, spawnAreaSize.y / 2),
@@ -56,12 +51,9 @@ public class VehicleSpawner : MonoBehaviour
         );
         
         Vector3 spawnPos = transform.position + randomOffset;
-        
-        // 차량 생성
         GameObject vehicle = Instantiate(vehiclePrefab, spawnPos, transform.rotation);
         currentVehicles++;
         
-        // 웨이포인트 할당
         VehiclePlatform platform = vehicle.GetComponent<VehiclePlatform>();
         if (platform != null)
         {

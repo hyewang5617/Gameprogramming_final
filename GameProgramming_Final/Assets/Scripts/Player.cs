@@ -7,11 +7,10 @@ public class Player : MonoBehaviour
     
     [Header("Jump")]
     public float jumpPower = 5f;
-    public float jumpCooldown = 0.1f;
 
-    bool isJump;
-    float lastJumpTime = -999f;
+    bool isJump = false;
     Rigidbody rigid;
+    bool onVehicle = false;
 
     void Awake()
     {
@@ -21,16 +20,17 @@ public class Player : MonoBehaviour
 
     void Update()
     {
-        if (Input.GetButtonDown("Jump") && !isJump && Time.time - lastJumpTime > jumpCooldown)
+        if (Input.GetButtonDown("Jump") && !isJump)
         {
             isJump = true;
-            lastJumpTime = Time.time;
             rigid.AddForce(Vector3.up * jumpPower, ForceMode.Impulse);
         }
     }
 
     void FixedUpdate()
     {
+        if (onVehicle) return;
+
         float h = Input.GetAxisRaw("Horizontal");
         float v = Input.GetAxisRaw("Vertical");
 
@@ -38,29 +38,23 @@ public class Player : MonoBehaviour
         rigid.velocity = new Vector3(moveDir.x * speed, rigid.velocity.y, moveDir.z * speed);
     }
 
+    public void SetOnVehicle(bool onVehicle)
+    {
+        this.onVehicle = onVehicle;
+    }
+
     void OnCollisionEnter(Collision collision)
     {
-        CheckLanding();
+        isJump = false;
     }
 
     void OnCollisionStay(Collision collision)
     {
-        CheckLanding();
-    }
-
-    void CheckLanding()
-    {
-        if (Time.time - lastJumpTime > jumpCooldown)
-        {
-            isJump = false;
-        }
+        isJump = false;
     }
 
     public void SetGrounded(bool grounded)
     {
-        if (grounded && Time.time - lastJumpTime > jumpCooldown)
-        {
-            isJump = false;
-        }
+        if (grounded) isJump = false;
     }
 }
