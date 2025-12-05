@@ -49,9 +49,18 @@ public class VehicleRider : MonoBehaviour
     {
         if (vehicle != null && rigid != null)
         {
-            Vector3 targetPos = vehicle.TransformPoint(localOffset);
-            Vector3 moveVector = (targetPos - transform.position) / Time.fixedDeltaTime;
-            rigid.velocity = new Vector3(moveVector.x, rigid.velocity.y, moveVector.z);
+            Rigidbody vehicleRigid = vehicle.GetComponent<Rigidbody>();
+            if (vehicleRigid != null)
+            {
+                Vector3 vehicleVelocity = vehicleRigid.velocity;
+                Vector3 playerInput = player?.GetPlayerInput() ?? Vector3.zero;
+                
+                rigid.velocity = new Vector3(
+                    vehicleVelocity.x + playerInput.x,
+                    rigid.velocity.y,
+                    vehicleVelocity.z + playerInput.z
+                );
+            }
         }
     }
 
