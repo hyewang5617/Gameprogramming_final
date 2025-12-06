@@ -15,9 +15,12 @@ public class VehicleRider : MonoBehaviour
 
     void OnCollisionEnter(Collision collision)
     {
-        if (collision.gameObject.CompareTag("Vehicle") && IsOnTop(collision))
+        Transform vehicleTransform = GetVehicleTransform(collision.gameObject);
+        if (vehicleTransform == null) return;
+
+        if (IsOnTop(collision, vehicleTransform))
         {
-            vehicle = collision.transform;
+            vehicle = vehicleTransform;
             localOffset = vehicle.InverseTransformPoint(transform.position);
             player?.SetOnVehicle(true);
             player?.SetGrounded(true);
@@ -26,36 +29,49 @@ public class VehicleRider : MonoBehaviour
 
     void OnCollisionStay(Collision collision)
     {
-        if (collision.gameObject.CompareTag("Vehicle"))
+        Transform vehicleTransform = GetVehicleTransform(collision.gameObject);
+        if (vehicleTransform == null) return;
+
+        if (IsOnTop(collision, vehicleTransform))
         {
-            if (IsOnTop(collision))
+            if (vehicle == null)
             {
-                if (vehicle == null)
-                {
-                    vehicle = collision.transform;
-                    localOffset = vehicle.InverseTransformPoint(transform.position);
-                    player?.SetOnVehicle(true);
-                }
-                player?.SetGrounded(true);
+                vehicle = vehicleTransform;
+                localOffset = vehicle.InverseTransformPoint(transform.position);
+                player?.SetOnVehicle(true);
             }
-            else
-            {
-                if (vehicle == collision.transform)
-                {
-                    vehicle = null;
-                    player?.SetOnVehicle(false);
-                }
-            }
+            player?.SetGrounded(true);
+        }
+        else if (vehicle == vehicleTransform)
+        {
+            vehicle = null;
+            player?.SetOnVehicle(false);
         }
     }
 
     void OnCollisionExit(Collision collision)
     {
-        if (collision.gameObject.CompareTag("Vehicle"))
+        Transform vehicleTransform = GetVehicleTransform(collision.gameObject);
+        if (vehicleTransform != null && vehicle == vehicleTransform)
         {
             vehicle = null;
             player?.SetOnVehicle(false);
         }
+    }
+
+    Transform GetVehicleTransform(GameObject collisionObject)
+    {
+        if (collisionObject.CompareTag("Vehicle"))
+            return collisionObject.transform;
+
+        Transform parent = collisionObject.transform.parent;
+        while (parent != null)
+        {
+            if (parent.CompareTag("Vehicle"))
+                return parent;
+            parent = parent.parent;
+        }
+        return null;
     }
 
     void FixedUpdate()
@@ -77,12 +93,39 @@ public class VehicleRider : MonoBehaviour
         }
     }
 
-    bool IsOnTop(Collision collision)
+    bool IsOnTop(Collision collision, Transform vehicleTransform)
     {
+        float playerY = transform.position.y;
+        Bounds vehicleBounds = GetVehicleBounds(vehicleTransform);
+        float vehicleTop = vehicleBounds.max.y;
+        
+        if (playerY < vehicleTop - 0.2f) return false;
+
         foreach (ContactPoint contact in collision.contacts)
         {
-            if (contact.normal.y > 0.5f) return true;
+            if (contact.normal.y > 0.2f && contact.point.y > vehicleTop - 0.3f)
+            {
+                return true;
+            }
         }
+        
+        if (playerY > vehicleTop - 0.1f && Mathf.Abs(transform.position.y - vehicleTop) < 0.5f)
+        {
+            return true;
+        }
+        
         return false;
     }
+
+    Bounds GetVehicleBounds(Transform vehicleTransform)
+    {
+        Collider col = vehicleTransform.GetComponent<Collider>();
+        if (col != null) return col.bounds;
+
+        Renderer renderer = vehicleTransform.GetComponent<Renderer>();
+        if (renderer != null) return renderer.bounds;
+
+        return new Bounds(vehicleTransform.position, Vector3.one);
+    }
 }
+

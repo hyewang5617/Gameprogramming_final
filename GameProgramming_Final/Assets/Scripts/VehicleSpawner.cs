@@ -27,6 +27,10 @@ public class VehicleSpawner : MonoBehaviour
             for (int i = 0; i < count; i++)
                 waypoints[i] = waypointPath.GetChild(i);
         }
+        else
+        {
+            Debug.LogWarning("[VehicleSpawner] waypointPath 미설정");
+        }
     }
 
     void Update()

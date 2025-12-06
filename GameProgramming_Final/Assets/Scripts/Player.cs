@@ -12,11 +12,13 @@ public class Player : MonoBehaviour
     bool isGrounded = true;
     Rigidbody rigid;
     bool onVehicle = false;
+    Camera cam;
 
     void Awake()
     {
         rigid = GetComponent<Rigidbody>();
         rigid.freezeRotation = true;
+        cam = Camera.main;
     }
 
     void Update()
@@ -43,8 +45,18 @@ public class Player : MonoBehaviour
         
         if (Mathf.Abs(h) < 0.01f && Mathf.Abs(v) < 0.01f) return Vector3.zero;
 
-        float moveSpeed = isGrounded && Input.GetKey(KeyCode.LeftShift) ? sprintSpeed : speed;
-        Vector3 moveDir = (transform.right * h + transform.forward * v).normalized;
+        if (cam == null) cam = Camera.main;
+        
+        float moveSpeed = Input.GetKey(KeyCode.LeftShift) ? sprintSpeed : speed;
+        Vector3 forward = cam.transform.forward;
+        Vector3 right = cam.transform.right;
+        
+        forward.y = 0f;
+        right.y = 0f;
+        forward.Normalize();
+        right.Normalize();
+        
+        Vector3 moveDir = (right * h + forward * v).normalized;
         return moveDir * moveSpeed;
     }
 
