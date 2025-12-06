@@ -15,24 +15,37 @@ public class VehicleRider : MonoBehaviour
 
     void OnCollisionEnter(Collision collision)
     {
-        player?.SetGrounded(true);
-
         if (collision.gameObject.CompareTag("Vehicle") && IsOnTop(collision))
         {
             vehicle = collision.transform;
             localOffset = vehicle.InverseTransformPoint(transform.position);
             player?.SetOnVehicle(true);
+            player?.SetGrounded(true);
         }
     }
 
     void OnCollisionStay(Collision collision)
     {
-        player?.SetGrounded(true);
-
-        if (collision.gameObject.CompareTag("Vehicle") && !IsOnTop(collision))
+        if (collision.gameObject.CompareTag("Vehicle"))
         {
-            vehicle = null;
-            player?.SetOnVehicle(false);
+            if (IsOnTop(collision))
+            {
+                if (vehicle == null)
+                {
+                    vehicle = collision.transform;
+                    localOffset = vehicle.InverseTransformPoint(transform.position);
+                    player?.SetOnVehicle(true);
+                }
+                player?.SetGrounded(true);
+            }
+            else
+            {
+                if (vehicle == collision.transform)
+                {
+                    vehicle = null;
+                    player?.SetOnVehicle(false);
+                }
+            }
         }
     }
 

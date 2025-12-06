@@ -36,18 +36,21 @@ public class Player : MonoBehaviour
         rigid.velocity = new Vector3(move.x, rigid.velocity.y, move.z);
     }
 
-    public Vector3 GetPlayerInput()
-    {
-        return GetMoveVector();
-    }
-
     Vector3 GetMoveVector()
     {
         float h = Input.GetAxisRaw("Horizontal");
         float v = Input.GetAxisRaw("Vertical");
+        
+        if (Mathf.Abs(h) < 0.01f && Mathf.Abs(v) < 0.01f) return Vector3.zero;
+
         float moveSpeed = isGrounded && Input.GetKey(KeyCode.LeftShift) ? sprintSpeed : speed;
         Vector3 moveDir = (transform.right * h + transform.forward * v).normalized;
         return moveDir * moveSpeed;
+    }
+
+    public Vector3 GetPlayerInput()
+    {
+        return GetMoveVector();
     }
 
     public void SetOnVehicle(bool onVehicle)
@@ -67,14 +70,17 @@ public class Player : MonoBehaviour
 
     void OnCollisionExit(Collision collision)
     {
+        if (collision.gameObject.CompareTag("Vehicle")) return;
         isGrounded = false;
     }
 
     void CheckGrounded(Collision collision)
     {
+        if (collision.gameObject.CompareTag("Vehicle")) return;
+
         foreach (ContactPoint contact in collision.contacts)
         {
-            if (contact.normal.y > 0.5f)
+            if (contact.normal.y > 0.3f)
             {
                 isGrounded = true;
                 return;

@@ -3,7 +3,7 @@ using UnityEngine;
 public class VehicleSpawner : MonoBehaviour
 {
     [Header("Spawn Settings")]
-    public GameObject vehiclePrefab;
+    public GameObject[] vehiclePrefabs;
     public float spawnInterval = 3f;
     public int maxVehicles = 10;
     
@@ -42,7 +42,10 @@ public class VehicleSpawner : MonoBehaviour
 
     void SpawnVehicle()
     {
-        if (vehiclePrefab == null) return;
+        if (vehiclePrefabs == null || vehiclePrefabs.Length == 0) return;
+
+        GameObject selectedPrefab = vehiclePrefabs[Random.Range(0, vehiclePrefabs.Length)];
+        if (selectedPrefab == null) return;
 
         Vector3 randomOffset = new Vector3(
             Random.Range(-spawnAreaSize.x / 2, spawnAreaSize.x / 2),
@@ -51,7 +54,7 @@ public class VehicleSpawner : MonoBehaviour
         );
         
         Vector3 spawnPos = transform.position + randomOffset;
-        GameObject vehicle = Instantiate(vehiclePrefab, spawnPos, transform.rotation);
+        GameObject vehicle = Instantiate(selectedPrefab, spawnPos, transform.rotation);
         currentVehicles++;
         
         VehiclePlatform platform = vehicle.GetComponent<VehiclePlatform>();

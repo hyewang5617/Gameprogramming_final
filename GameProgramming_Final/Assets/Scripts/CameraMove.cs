@@ -37,26 +37,35 @@ public class CameraMove : MonoBehaviour
         }
     }
 
-    void FixedUpdate()
+    void Update()
     {
         if (holder == null) return;
 
-        float dt = Mathf.Max(Time.fixedDeltaTime, 1e-6f);
-
         Vector3 desired = holder.TransformPoint(localOffset);
-        transform.position = Vector3.SmoothDamp(transform.position, desired, ref followVelocity, followSmoothTime, Mathf.Infinity, dt);
+        transform.position = Vector3.SmoothDamp(transform.position, desired, ref followVelocity, followSmoothTime);
 
         if (matchRotation) transform.rotation = holder.rotation;
 
         if (cam != null && enableFovSpeedZoom)
         {
-            Vector3 horizVel = new Vector3(followVelocity.x, 0f, followVelocity.z);
-            float horizSpeed = horizVel.magnitude;
+            Rigidbody holderRigid = holder.GetComponent<Rigidbody>();
+            float horizSpeed = 0f;
+            
+            if (holderRigid != null)
+            {
+                Vector3 horizVel = new Vector3(holderRigid.velocity.x, 0f, holderRigid.velocity.z);
+                horizSpeed = horizVel.magnitude;
+            }
+            else
+            {
+                Vector3 horizVel = new Vector3(followVelocity.x, 0f, followVelocity.z);
+                horizSpeed = horizVel.magnitude;
+            }
 
             float t = speedForMaxFov > 0 ? Mathf.Clamp01(horizSpeed / speedForMaxFov) : 0;
             float desiredFov = baseFov + maxFovIncrease * t;
 
-            currentFov = Mathf.SmoothDamp(currentFov, desiredFov, ref fovVelocity, fovSmoothTime, Mathf.Infinity, dt);
+            currentFov = Mathf.SmoothDamp(currentFov, desiredFov, ref fovVelocity, fovSmoothTime);
             cam.fieldOfView = currentFov;
         }
     }
