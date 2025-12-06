@@ -5,6 +5,7 @@ public class GameManager : MonoBehaviour
 {
     [Header("References")]
     public Transform player;
+    public VehicleSpawner vehicleSpawner;
     
     [Header("UI")]
     public GameObject gameOverPanel;
@@ -15,6 +16,7 @@ public class GameManager : MonoBehaviour
 
     bool isGameOver = false;
     bool isLevelComplete = false;
+    bool gameStarted = false;
 
     void Start()
     {
@@ -22,25 +24,47 @@ public class GameManager : MonoBehaviour
             gameOverPanel.SetActive(false);
         if (levelCompletePanel != null)
             levelCompletePanel.SetActive(false);
+
+        if (vehicleSpawner == null)
+            vehicleSpawner = FindObjectOfType<VehicleSpawner>();
+
+        if (player != null)
+        {
+            Player playerScript = player.GetComponent<Player>();
+            if (playerScript != null)
+                playerScript.SetCanMove(false);
+        }
     }
 
     void Update()
     {
-        // 게임오버 상태에서 아무 키나 누르면 재시작
+        if (!gameStarted)
+        {
+            if (vehicleSpawner != null && vehicleSpawner.IsReady)
+            {
+                gameStarted = true;
+                if (player != null)
+                {
+                    Player playerScript = player.GetComponent<Player>();
+                    if (playerScript != null)
+                        playerScript.SetCanMove(true);
+                }
+            }
+            return;
+        }
+
         if (isGameOver && Input.anyKeyDown)
         {
             RestartLevel();
             return;
         }
 
-        // 레벨 클리어 상태에서 아무 키나 누르면 재시작
         if (isLevelComplete && Input.anyKeyDown)
         {
             RestartLevel();
             return;
         }
 
-        // 플레이어 사망 체크
         if (player != null && player.position.y < deathHeight)
         {
             GameOver();

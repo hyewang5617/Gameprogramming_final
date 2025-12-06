@@ -6,6 +6,7 @@ public class VehicleSpawner : MonoBehaviour
     public GameObject[] vehiclePrefabs;
     public float spawnInterval = 3f;
     public int maxVehicles = 10;
+    public int initialSpawnCount = 5;
     
     [Header("Waypoint Path")]
     public Transform waypointPath;
@@ -16,6 +17,9 @@ public class VehicleSpawner : MonoBehaviour
     float timer = 0f;
     int currentVehicles = 0;
     Transform[] waypoints;
+    bool initialSpawnComplete = false;
+    
+    public bool IsReady => initialSpawnComplete;
 
     void Awake()
     {
@@ -33,8 +37,19 @@ public class VehicleSpawner : MonoBehaviour
         }
     }
 
+    void Start()
+    {
+        for (int i = 0; i < initialSpawnCount && i < maxVehicles; i++)
+        {
+            SpawnVehicle();
+        }
+        initialSpawnComplete = true;
+    }
+
     void Update()
     {
+        if (!initialSpawnComplete) return;
+
         timer += Time.deltaTime;
         
         if (timer >= spawnInterval && currentVehicles < maxVehicles)

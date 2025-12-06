@@ -2,28 +2,44 @@ using UnityEngine;
 
 public class Player : MonoBehaviour
 {
+    [Header("References")]
+    public Camera cam;
+    
     [Header("Movement")]
     public float speed = 5f;
     public float sprintSpeed = 10f;
     
     [Header("Jump")]
     public float jumpPower = 5f;
+    public float maxFallSpeed = 30f;
+    
+    [Header("Start Settings")]
+    public float startHeight = 8f;
+    public float startUpwardForce = 60f;
 
     bool isGrounded = true;
     Rigidbody rigid;
     bool onVehicle = false;
-    Camera cam;
+    bool canMove = true;
 
     void Awake()
     {
         rigid = GetComponent<Rigidbody>();
-        rigid.freezeRotation = true;
-        cam = Camera.main;
+        if (cam == null) cam = Camera.main;
+    }
+
+    void Start()
+    {
+        Vector3 pos = transform.position;
+        pos.y = startHeight;
+        transform.position = pos;
+        isGrounded = false;
+        rigid.AddForce(Vector3.up * startUpwardForce, ForceMode.VelocityChange);
     }
 
     void Update()
     {
-        if (Input.GetButtonDown("Jump") && isGrounded)
+        if (canMove && Input.GetButtonDown("Jump") && isGrounded)
         {
             isGrounded = false;
             rigid.AddForce(Vector3.up * jumpPower, ForceMode.Impulse);
@@ -32,10 +48,22 @@ public class Player : MonoBehaviour
 
     void FixedUpdate()
     {
-        if (onVehicle) return;
+        LimitFallSpeed();
+        
+        if (!canMove || onVehicle) return;
 
         Vector3 move = GetMoveVector();
         rigid.velocity = new Vector3(move.x, rigid.velocity.y, move.z);
+    }
+
+    void LimitFallSpeed()
+    {
+        if (rigid.velocity.y < -maxFallSpeed)
+        {
+            Vector3 vel = rigid.velocity;
+            vel.y = -maxFallSpeed;
+            rigid.velocity = vel;
+        }
     }
 
     Vector3 GetMoveVector()
@@ -45,8 +73,6 @@ public class Player : MonoBehaviour
         
         if (Mathf.Abs(h) < 0.01f && Mathf.Abs(v) < 0.01f) return Vector3.zero;
 
-        if (cam == null) cam = Camera.main;
-        
         float moveSpeed = Input.GetKey(KeyCode.LeftShift) ? sprintSpeed : speed;
         Vector3 forward = cam.transform.forward;
         Vector3 right = cam.transform.right;
@@ -56,18 +82,22 @@ public class Player : MonoBehaviour
         forward.Normalize();
         right.Normalize();
         
-        Vector3 moveDir = (right * h + forward * v).normalized;
-        return moveDir * moveSpeed;
+        return (right * h + forward * v).normalized * moveSpeed;
     }
 
     public Vector3 GetPlayerInput()
     {
-        return GetMoveVector();
+        return canMove ? GetMoveVector() : Vector3.zero;
     }
 
     public void SetOnVehicle(bool onVehicle)
     {
         this.onVehicle = onVehicle;
+    }
+
+    public void SetCanMove(bool canMove)
+    {
+        this.canMove = canMove;
     }
 
     void OnCollisionEnter(Collision collision)
@@ -82,8 +112,8 @@ public class Player : MonoBehaviour
 
     void OnCollisionExit(Collision collision)
     {
-        if (collision.gameObject.CompareTag("Vehicle")) return;
-        isGrounded = false;
+        if (!collision.gameObject.CompareTag("Vehicle"))
+            isGrounded = false;
     }
 
     void CheckGrounded(Collision collision)
