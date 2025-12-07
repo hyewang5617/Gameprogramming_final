@@ -6,7 +6,9 @@ public class GoalTrigger : MonoBehaviour
     {
         if (other.CompareTag("Player"))
         {
-            FindObjectOfType<GameManager>()?.LevelComplete();
+            GameManager gm = FindObjectOfType<GameManager>();
+            if (gm != null) gm.LevelComplete();
         }
     }
 }
+
