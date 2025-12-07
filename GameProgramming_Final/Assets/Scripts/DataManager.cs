@@ -164,6 +164,17 @@ public class DataManager : MonoBehaviour
         return skillDefs?.FirstOrDefault(d => d != null && d.skillId == skillId); // 없으면 null
     }
 
+    public SkillDefinition GetSkillDefinition(string skillId)
+    {
+        return GetSkillDef(skillId);
+    }
+
+    public SkillDefinition[] GetAllSkillDefinitions()
+    {
+        if (skillDefs == null || skillDefs.Length == 0) LoadSkillDefinitions();
+        return skillDefs;
+    }
+
     public int GetSkillLevel(string skillId)
     {
         if (string.IsNullOrEmpty(skillId)) return 0;
