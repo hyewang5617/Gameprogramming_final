@@ -15,17 +15,25 @@ public class Player : MonoBehaviour
     
     [Header("Start Settings")]
     public float startHeight = 8f;
-    public float startUpwardForce = 60f;
 
     bool isGrounded = true;
     Rigidbody rigid;
     bool onVehicle = false;
     bool canMove = true;
+    Vector3 moveInput; // 현재 이동 입력 값
 
     void Awake()
     {
         rigid = GetComponent<Rigidbody>();
         if (cam == null) cam = Camera.main;
+        
+        if (rigid != null)
+        {
+            rigid.freezeRotation = true;
+            rigid.drag = 0.5f;
+            rigid.angularDrag = 5f;
+            rigid.interpolation = RigidbodyInterpolation.Interpolate;
+        }
     }
 
     void Start()
@@ -33,15 +41,18 @@ public class Player : MonoBehaviour
         Vector3 pos = transform.position;
         pos.y = startHeight;
         transform.position = pos;
+        rigid.isKinematic = true;
         isGrounded = false;
-        rigid.AddForce(Vector3.up * startUpwardForce, ForceMode.VelocityChange);
     }
 
     void Update()
     {
-        if (canMove && Input.GetButtonDown("Jump") && isGrounded)
+        moveInput = GetMoveVector();
+        
+        if (canMove && Input.GetButtonDown("Jump") && (isGrounded || onVehicle))
         {
             isGrounded = false;
+            if (onVehicle) SetOnVehicle(false);
             rigid.AddForce(Vector3.up * jumpPower, ForceMode.Impulse);
         }
     }
@@ -50,33 +61,43 @@ public class Player : MonoBehaviour
     {
         LimitFallSpeed();
         
+        if (rigid != null)
+        {
+            rigid.rotation = Quaternion.identity;
+        }
+        
         if (!canMove || onVehicle) return;
 
-        Vector3 move = GetMoveVector();
-        rigid.velocity = new Vector3(move.x, rigid.velocity.y, move.z);
-    }
-
-    void LimitFallSpeed()
-    {
-        if (rigid.velocity.y < -maxFallSpeed)
+        if (moveInput.magnitude > 0.01f)
         {
-            Vector3 vel = rigid.velocity;
-            vel.y = -maxFallSpeed;
-            rigid.velocity = vel;
+            Vector3 targetVelocity = new Vector3(moveInput.x, rigid.velocity.y, moveInput.z);
+            rigid.velocity = targetVelocity;
+        }
+        else
+        {
+            Vector3 horizontalVelocity = new Vector3(rigid.velocity.x, 0, rigid.velocity.z);
+            horizontalVelocity = Vector3.Lerp(horizontalVelocity, Vector3.zero, Time.fixedDeltaTime * 10f);
+            rigid.velocity = new Vector3(horizontalVelocity.x, rigid.velocity.y, horizontalVelocity.z);
         }
     }
 
+    // 낙하 속도 제한
+    void LimitFallSpeed()
+    {
+        if (rigid.velocity.y < -maxFallSpeed)
+            rigid.velocity = new Vector3(rigid.velocity.x, -maxFallSpeed, rigid.velocity.z);
+    }
+
+    // 카메라 기준 이동 벡터 계산
     Vector3 GetMoveVector()
     {
         float h = Input.GetAxisRaw("Horizontal");
         float v = Input.GetAxisRaw("Vertical");
-        
         if (Mathf.Abs(h) < 0.01f && Mathf.Abs(v) < 0.01f) return Vector3.zero;
 
         float moveSpeed = Input.GetKey(KeyCode.LeftShift) ? sprintSpeed : speed;
         Vector3 forward = cam.transform.forward;
         Vector3 right = cam.transform.right;
-        
         forward.y = 0f;
         right.y = 0f;
         forward.Normalize();
@@ -85,6 +106,7 @@ public class Player : MonoBehaviour
         return (right * h + forward * v).normalized * moveSpeed;
     }
 
+    // 외부 스크립트에서 플레이어 입력 가져오기
     public Vector3 GetPlayerInput()
     {
         return canMove ? GetMoveVector() : Vector3.zero;
@@ -98,6 +120,12 @@ public class Player : MonoBehaviour
     public void SetCanMove(bool canMove)
     {
         this.canMove = canMove;
+    }
+
+    // 게임 시작 시 물리 활성화
+    public void ReleaseFromStart()
+    {
+        rigid.isKinematic = false;
     }
 
     void OnCollisionEnter(Collision collision)
@@ -116,6 +144,7 @@ public class Player : MonoBehaviour
             isGrounded = false;
     }
 
+    // 충돌면이 지면인지 확인
     void CheckGrounded(Collision collision)
     {
         if (collision.gameObject.CompareTag("Vehicle")) return;
@@ -125,13 +154,14 @@ public class Player : MonoBehaviour
             if (contact.normal.y > 0.3f)
             {
                 isGrounded = true;
-                return;
+                break;
             }
         }
     }
 
+    // 외부에서 지면 상태 설정 (VehicleRider에서 사용)
     public void SetGrounded(bool grounded)
     {
-        if (grounded) isGrounded = true;
+        isGrounded = grounded;
     }
 }
