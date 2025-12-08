@@ -76,11 +76,13 @@ public class DataManager : MonoBehaviour
             UnlockAllStages();
             Debug.Log("[DataManager] 모든 스테이지 해금됨");
         }
-        
-        // 강제로 Stage 2 이상 해금 (기존 저장 데이터 무시)
-        if (Data.unlockedStage < 2)
+        else
         {
-            Data.unlockedStage = 4;
+            // 기본적으로 Stage 1만 해금 (최소값 보장)
+            if (Data.unlockedStage < 1)
+            {
+                Data.unlockedStage = 1;
+            }
         }
         
         // 변경사항 저장 (Currency 리셋 포함)
@@ -127,6 +129,15 @@ public class DataManager : MonoBehaviour
         }
 
         RebuildCaches();
+        
+        // 처음 시작 시 (저장 데이터가 없거나 unlockedStage가 1보다 큰 경우) Stage 1만 해금
+        // 단, unlockAllStagesOnStart가 true이면 무시
+        if (!unlockAllStagesOnStart && !PlayerPrefs.HasKey("has_saved_stage_progress"))
+        {
+            Data.unlockedStage = 1;
+            PlayerPrefs.SetInt("has_saved_stage_progress", 1);
+            PlayerPrefs.Save();
+        }
     }
 
     private void CreateDefaultData()
@@ -134,7 +145,7 @@ public class DataManager : MonoBehaviour
         Data = new PlayerSaveData
         {
             currency = 0,
-            unlockedStage = 4, // 모든 스테이지 기본 해금 (테스트용)
+            unlockedStage = 1, // 처음 시작 시 Stage 1만 해금
             skills = new List<SkillData>(),
             stageRecords = new List<StageRecord>()
         };
@@ -253,6 +264,8 @@ public class DataManager : MonoBehaviour
         if (stage > Data.unlockedStage)
         {
             Data.unlockedStage = stage;
+            PlayerPrefs.SetInt("has_saved_stage_progress", 1); // 게임 진행 중임을 표시
+            PlayerPrefs.Save();
             Save();
         }
     }

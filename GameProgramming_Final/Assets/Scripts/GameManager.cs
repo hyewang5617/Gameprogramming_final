@@ -2,6 +2,8 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using TMPro;
 using System.Collections;
+using System.Text.RegularExpressions;
+using UnityEngine.Events;
 
 public class GameManager : MonoBehaviour
 {
@@ -143,6 +145,9 @@ public class GameManager : MonoBehaviour
             scoreManager.StopScoreDecay();
         }
         
+        // 현재 스테이지 번호 확인 및 다음 스테이지 언락
+        UnlockNextStage();
+        
         // Earned Point 순차적으로 표시 (점수를 먼저 표시한 후 Currency 변환)
         StartCoroutine(ShowEarnedPointsSequentially());
     }
@@ -215,7 +220,7 @@ public class GameManager : MonoBehaviour
         
         Debug.Log($"[GameManager] Air Point 표시 완료: +{airPoint}");
 
-        // 0.5초 대기 (Air Point에서 Time Attack Point로 넘어가는 속도)
+        // 1초 대기 (Air Point에서 Time Attack Point로 넘어가는 속도)
         yield return new WaitForSecondsRealtime(1f);
 
         // Time Attack Point 카운트업 애니메이션 (1.5초 동안)
@@ -295,6 +300,47 @@ public class GameManager : MonoBehaviour
     void RestartLevel()
     {
         Time.timeScale = 1f;
-        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        // Stage 선택 화면으로 돌아가야 함을 표시 (PlayerPrefs 사용)
+        PlayerPrefs.SetInt("returnToStageSelect", 1);
+        PlayerPrefs.Save();
+        // Main 씬으로 이동 (UIManager에서 플래그 확인 후 Stage 선택 화면으로 전환)
+        SceneManager.LoadScene("Main");
+    }
+
+    // 현재 스테이지를 확인하고 다음 스테이지 언락
+    void UnlockNextStage()
+    {
+        string currentSceneName = SceneManager.GetActiveScene().name;
+        int currentStage = GetStageNumberFromSceneName(currentSceneName);
+        
+        if (currentStage > 0)
+        {
+            DataManager dm = DataManager.Instance ?? FindObjectOfType<DataManager>();
+            if (dm != null)
+            {
+                // 현재 스테이지의 다음 스테이지 언락
+                int nextStage = currentStage + 1;
+                dm.UnlockStage(nextStage);
+                Debug.Log($"[GameManager] Stage {currentStage} 완료! Stage {nextStage} 언락됨.");
+            }
+        }
+    }
+
+    // 씬 이름에서 스테이지 번호 추출 (예: "Stage 1" -> 1, "Stage1" -> 1)
+    int GetStageNumberFromSceneName(string sceneName)
+    {
+        if (string.IsNullOrEmpty(sceneName)) return 0;
+        
+        // "Stage 1", "Stage1", "Stage 2" 등의 패턴 매칭
+        Match match = Regex.Match(sceneName, @"Stage\s*(\d+)", RegexOptions.IgnoreCase);
+        if (match.Success && match.Groups.Count > 1)
+        {
+            if (int.TryParse(match.Groups[1].Value, out int stageNumber))
+            {
+                return stageNumber;
+            }
+        }
+        
+        return 0;
     }
 }
