@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2521a7242c5e8154bb15937b7175be74, type: 3}
   m_Name: DoubleJump
   m_EditorClassIdentifier: 
-  skillId: 
-  displayName: 
-  description: 
-  maxLevel: 5
-  costPerLevel: 
+  skillId: DoubleJump
+  displayName: DoubleJump
+  description: enable double jump, allow additional  jump in the air once.
+  maxLevel: 1
+  costPerLevel: 00000000

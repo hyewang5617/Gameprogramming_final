@@ -67,7 +67,7 @@ public class ShopStateController : BaseStateController
     private void RefreshCurrencyUI()
     {
         if (currencyText == null) return;
-        currencyText.text = Data != null ? Data.GetCurrency().ToString() : "-";
+        currencyText.text = Data != null ? $"{Data.GetCurrency()} Points" : "-";
     }
 
     private void ClearSelection()

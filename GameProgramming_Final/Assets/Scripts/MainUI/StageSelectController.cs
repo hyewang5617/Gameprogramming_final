@@ -1,50 +1,88 @@
 using UnityEngine;
+using UnityEngine.UI;using UnityEngine.SceneManagement;
 
 public class StageSelectController : BaseStateController
 {
-    [SerializeField] private Transform stageListRoot;
-    [SerializeField] private GameObject[] stageButtons;
+    [System.Serializable]
+    private struct StageButtonEntry
+    {
+        public int stageNumber;
+        public string sceneName;
+        public Button button;
+        public GameObject lockOverlay;
+    }
 
-    // 필요한 초기화나 추가 동작이 있으면 Awake/Start에 작성
+    [Header("Stage Buttons (assign in Inspector)")]
+    [SerializeField] private StageButtonEntry[] stageButtons;
+
+    private DataManager Data => DataManager.Instance;
+
+    private void Awake()
+    {
+        WireStageButtons();
+    }
+
     protected override void Reset()
     {
         base.Reset();
-        // default fadeDuration 등 초기값 설정 가능
     }
 
-    // 필요시 진입 시 추가 작업을 수행하고 싶다면 아래처럼 오버라이드
     public override void Enter(object param = null)
     {
-        // 예: param으로 특정 스테이지 선택 정보가 들어올 수 있음
-        // param 처리 코드는 여기에
-
-        // 공통 동작(페이드 + moving UI 적용)
         base.Enter(param);
-
-        // 추가로 StageSelect 전용 초기화가 필요하면 여기에 추가
-        // 예: stage buttons refresh
         RefreshStageButtons();
     }
 
     public override void Exit()
     {
-        // StageSelect 전용 종료 처리(있다면)
-        // ...
-
-        // 공통 종료 동작 수행 (페이드아웃 + 이동)
         base.Exit();
+    }
+
+    private void WireStageButtons()
+    {
+        if (stageButtons == null) return;
+        foreach (var entry in stageButtons)
+        {
+            if (entry.button == null) continue;
+            int stageNum = entry.stageNumber;
+            string scene = entry.sceneName;
+            entry.button.onClick.AddListener(() => OnStageButtonClicked(stageNum, scene));
+        }
     }
 
     private void RefreshStageButtons()
     {
-        if (stageListRoot == null || stageButtons == null) return;
-        // 버튼 생성/정렬/활성화 로직 등
-        // 간단 예: stageButtons를 stageListRoot의 자식으로 배치
+        if (stageButtons == null) return;
+
         for (int i = 0; i < stageButtons.Length; i++)
         {
-            if (stageButtons[i] == null) continue;
-            stageButtons[i].transform.SetParent(stageListRoot, false);
-            // 추가 초기화...
+            var entry = stageButtons[i];
+            if (entry.button == null) continue;
+
+            bool unlocked = Data == null || entry.stageNumber <= 0 || Data.IsStageUnlocked(entry.stageNumber);
+            entry.button.interactable = unlocked;
+            if (entry.lockOverlay != null)
+            {
+                entry.lockOverlay.SetActive(!unlocked);
+            }
         }
+    }
+
+    private void OnStageButtonClicked(int stageNumber, string sceneName)
+    {
+        if (string.IsNullOrEmpty(sceneName))
+        {
+            Debug.LogWarning("StageSelectController: scene name is empty.");
+            return;
+        }
+
+        if (Data != null && stageNumber > 0 && !Data.IsStageUnlocked(stageNumber))
+        {
+            Debug.LogWarning($"StageSelectController: stage {stageNumber} is locked.");
+            return;
+        }
+
+        SceneManager.LoadScene(sceneName);
+      base.Exit();
     }
 }
