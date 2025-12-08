@@ -21,6 +21,8 @@ public class Player : MonoBehaviour
     bool onVehicle = false;
     bool canMove = true;
     Vector3 moveInput; // 현재 이동 입력 값
+    int maxExtraJumps = 0;
+    int extraJumpsRemaining = 0;
 
     void Awake()
     {
@@ -49,11 +51,16 @@ public class Player : MonoBehaviour
     {
         moveInput = GetMoveVector();
         
-        if (canMove && Input.GetButtonDown("Jump") && (isGrounded || onVehicle))
+        if (canMove && Input.GetButtonDown("Jump") && (isGrounded || onVehicle || extraJumpsRemaining > 0))
         {
+            bool wasGrounded = isGrounded || onVehicle;
             isGrounded = false;
             if (onVehicle) SetOnVehicle(false);
             rigid.AddForce(Vector3.up * jumpPower, ForceMode.Impulse);
+            if (!wasGrounded && extraJumpsRemaining > 0)
+            {
+                extraJumpsRemaining--;
+            }
         }
     }
 
@@ -154,6 +161,7 @@ public class Player : MonoBehaviour
             if (contact.normal.y > 0.3f)
             {
                 isGrounded = true;
+                extraJumpsRemaining = maxExtraJumps;
                 break;
             }
         }
@@ -163,5 +171,20 @@ public class Player : MonoBehaviour
     public void SetGrounded(bool grounded)
     {
         isGrounded = grounded;
+        if (grounded)
+        {
+            extraJumpsRemaining = maxExtraJumps;
+        }
+    }
+
+    public void SetMaxExtraJumps(int count)
+    {
+        maxExtraJumps = Mathf.Max(0, count);
+        extraJumpsRemaining = maxExtraJumps;
+    }
+
+    public Rigidbody GetRigidbody()
+    {
+        return rigid;
     }
 }

@@ -14,6 +14,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillId: DoubleJump
   displayName: DoubleJump
-  description: enable double jump, allow additional  jump in the air once.
-  maxLevel: 1
-  costPerLevel: 00000000
+  description: Enable air jump, allow additional  jump in the air.
+  maxLevel: 2
+  costPerLevel: 0000000000000000
+  usesGauge: 0
+  gaugeMaxPerLevel: []
+  drainPerSecPerLevel: []
+  regenPerSecPerLevel: []
+  timeScalePerLevel: []
+  forcePerLevel: []
+  extraJumpPerLevel: 0100000002000000
