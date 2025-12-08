@@ -18,12 +18,17 @@ public class VehiclePlatform : MonoBehaviour
     [Header("Despawn")]
     public bool destroyAtEnd = true;
     
+    [Header("Explosion")]
+    public GameObject explosionEffectPrefab;
+    public float stalledTimeThreshold = 5f;
+    
     public Action onDestroyed;
     
     int currentWaypointIndex = 0;
     Rigidbody rigid;
     bool initialized = false;
     float originalMoveForce;
+    float stalledTimer = 0f;
 
     void Awake()
     {
@@ -116,11 +121,16 @@ public class VehiclePlatform : MonoBehaviour
         }
         
         Vector3 horizontalVelocity = new Vector3(rigid.velocity.x, 0, rigid.velocity.z);
-        if (horizontalVelocity.magnitude > speed)
+        float currentSpeed = horizontalVelocity.magnitude;
+        
+        if (currentSpeed > speed)
         {
             horizontalVelocity = horizontalVelocity.normalized * speed;
             rigid.velocity = new Vector3(horizontalVelocity.x, rigid.velocity.y, horizontalVelocity.z);
+            currentSpeed = speed;
         }
+        
+        CheckExplosionConditions(currentSpeed);
         
         float distance = Vector3.Distance(transform.position, target.position);
         if (distance < waypointReachDistance)
@@ -183,6 +193,41 @@ public class VehiclePlatform : MonoBehaviour
         }
         
         return currentWaypoint.position;
+    }
+    
+    void CheckExplosionConditions(float currentSpeed)
+    {
+        if (currentSpeed < 0.5f)
+        {
+            stalledTimer += Time.fixedDeltaTime;
+            if (stalledTimer >= stalledTimeThreshold)
+                Explode();
+        }
+        else
+        {
+            stalledTimer = 0f;
+        }
+    }
+    
+    void Explode()
+    {
+        if (explosionEffectPrefab != null)
+        {
+            GameObject explosion = Instantiate(explosionEffectPrefab, transform.position, Quaternion.identity);
+            ParticleSystem ps = explosion.GetComponent<ParticleSystem>();
+            if (ps != null)
+            {
+                ParticleSystem.MainModule main = ps.main;
+                Destroy(explosion, main.duration + main.startLifetime.constantMax);
+            }
+            else
+            {
+                Destroy(explosion, 3f);
+            }
+        }
+        
+        onDestroyed?.Invoke();
+        Destroy(gameObject);
     }
     
     void OnDrawGizmos()
