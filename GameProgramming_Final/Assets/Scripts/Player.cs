@@ -31,8 +31,9 @@ public class Player : MonoBehaviour
         {
             rigid.freezeRotation = true;
             rigid.drag = 0.5f;
-            rigid.angularDrag = 5f;
+            rigid.angularDrag = 5f; // 원통 회전 저항
             rigid.interpolation = RigidbodyInterpolation.Interpolate;
+            rigid.collisionDetectionMode = CollisionDetectionMode.Continuous;
         }
     }
 

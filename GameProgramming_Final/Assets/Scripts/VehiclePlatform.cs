@@ -11,6 +11,9 @@ public class VehiclePlatform : MonoBehaviour
     public float waypointReachDistance = 0.5f;
     public float rotationSpeed = 5f;
     public float moveForce = 2000f;
+    public float curveLookAhead = 0.3f; // 다음 웨이포인트를 미리 보는 비율 (0~1)
+    public float sharpTurnMultiplier = 2f; // 급격한 커브에서 회전 속도 배율
+    public float curveStartDistance = 2f; // 현재 웨이포인트에서 이 거리 이내일 때만 커브 시작
     
     [Header("Despawn")]
     public bool destroyAtEnd = true;
@@ -95,14 +98,36 @@ public class VehiclePlatform : MonoBehaviour
         Transform target = waypoints[currentWaypointIndex];
         if (target == null) return;
         
-        Vector3 direction = (target.position - transform.position).normalized;
+        // 부드러운 곡선을 위한 타겟 위치 계산 (다음 웨이포인트를 미리 고려)
+        Vector3 targetPosition = GetCurvedTargetPosition();
+        Vector3 direction = (targetPosition - transform.position).normalized;
         
         if (direction.magnitude > 0.01f)
         {
             rigid.AddForce(direction * moveForce * Time.fixedDeltaTime, ForceMode.Acceleration);
             
             Quaternion targetRotation = Quaternion.LookRotation(direction);
-            rigid.rotation = Quaternion.Slerp(rigid.rotation, targetRotation, Time.fixedDeltaTime * rotationSpeed);
+            
+            // 급격한 커브 감지 (90도 커브 등)
+            float currentRotSpeed = rotationSpeed;
+            if (currentWaypointIndex + 1 < waypoints.Length)
+            {
+                Transform currentWaypoint = waypoints[currentWaypointIndex];
+                Transform nextWaypoint = waypoints[currentWaypointIndex + 1];
+                if (currentWaypoint != null && nextWaypoint != null)
+                {
+                    Vector3 currentDir = (currentWaypoint.position - transform.position).normalized;
+                    Vector3 nextDir = (nextWaypoint.position - currentWaypoint.position).normalized;
+                    currentDir.y = 0f;
+                    nextDir.y = 0f;
+                    
+                    float angle = Vector3.Angle(currentDir, nextDir);
+                    if (angle > 45f) // 45도 이상이면 급격한 커브로 간주
+                        currentRotSpeed = rotationSpeed * sharpTurnMultiplier;
+                }
+            }
+            
+            rigid.rotation = Quaternion.Slerp(rigid.rotation, targetRotation, Time.fixedDeltaTime * currentRotSpeed);
         }
         
         Vector3 horizontalVelocity = new Vector3(rigid.velocity.x, 0, rigid.velocity.z);
@@ -128,6 +153,59 @@ public class VehiclePlatform : MonoBehaviour
                     currentWaypointIndex = 0;
             }
         }
+    }
+    
+    // 부드러운 곡선을 위한 타겟 위치 계산
+    Vector3 GetCurvedTargetPosition()
+    {
+        if (currentWaypointIndex >= waypoints.Length) 
+            return transform.position;
+        
+        Transform currentWaypoint = waypoints[currentWaypointIndex];
+        if (currentWaypoint == null) return transform.position;
+        
+        float distanceToCurrent = Vector3.Distance(transform.position, currentWaypoint.position);
+        
+        // 현재 웨이포인트에 충분히 가까워질 때까지는 현재 웨이포인트만 바라봄
+        if (distanceToCurrent > curveStartDistance)
+            return currentWaypoint.position;
+        
+        // 다음 웨이포인트가 있고, 현재 웨이포인트에 가까워졌을 때만 커브 시작
+        if (currentWaypointIndex + 1 < waypoints.Length)
+        {
+            Transform nextWaypoint = waypoints[currentWaypointIndex + 1];
+            if (nextWaypoint != null)
+            {
+                // 웨이포인트를 거의 지나간 경우에만 커브 시작 (뒤로 가는 것 방지)
+                Vector3 toWaypoint = (currentWaypoint.position - transform.position).normalized;
+                Vector3 vehicleForward = transform.forward;
+                float waypointBehind = Vector3.Dot(toWaypoint, vehicleForward);
+                
+                // 웨이포인트가 뒤에 있거나 거의 지나갔을 때만 커브 시작
+                if (waypointBehind < 0.5f && distanceToCurrent < curveStartDistance)
+                {
+                    float totalDistance = Vector3.Distance(currentWaypoint.position, nextWaypoint.position);
+                    
+                    if (totalDistance > 0.01f)
+                    {
+                        // 현재 웨이포인트에 가까울수록 다음 웨이포인트를 더 많이 바라봄
+                        float normalizedDistance = Mathf.Clamp01(distanceToCurrent / curveStartDistance);
+                        float t = Mathf.Lerp(curveLookAhead, 0f, normalizedDistance);
+                        Vector3 curvedTarget = Vector3.Lerp(currentWaypoint.position, nextWaypoint.position, t);
+                        
+                        // 보간된 타겟이 현재 위치보다 뒤에 있지 않도록 확인
+                        Vector3 toCurvedTarget = (curvedTarget - transform.position).normalized;
+                        float dot = Vector3.Dot(vehicleForward, toCurvedTarget);
+                        
+                        // 앞으로 가는 방향이 아니면 현재 웨이포인트만 바라봄
+                        if (dot > 0.3f)
+                            return curvedTarget;
+                    }
+                }
+            }
+        }
+        
+        return currentWaypoint.position;
     }
     
     // 에디터에서 경로 시각화
