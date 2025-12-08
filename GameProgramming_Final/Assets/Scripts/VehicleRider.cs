@@ -2,10 +2,12 @@ using UnityEngine;
 
 public class VehicleRider : MonoBehaviour
 {
+    [Header("References")]
     Player player;
     Rigidbody rigid;
-    Transform vehicle; // 현재 탑승 중인 차량
-    Vector3 localOffset; // 차량 기준 상대 위치
+    
+    Transform vehicle;
+    Vector3 localOffset;
 
     void Awake()
     {
@@ -79,7 +81,6 @@ public class VehicleRider : MonoBehaviour
         }
     }
 
-    // 충돌 오브젝트에서 Vehicle 태그를 가진 부모 찾기
     Transform GetVehicleTransform(GameObject collisionObject)
     {
         if (collisionObject.CompareTag("Vehicle"))
@@ -95,7 +96,6 @@ public class VehicleRider : MonoBehaviour
         return null;
     }
 
-    // 차량 위에서 플레이어 속도를 차량 속도와 합치기
     void FixedUpdate()
     {
         if (vehicle == null || rigid == null) return;
@@ -114,7 +114,6 @@ public class VehicleRider : MonoBehaviour
         rigid.velocity = Vector3.Lerp(rigid.velocity, targetVelocity, Time.fixedDeltaTime * 20f);
     }
 
-    // 플레이어가 차량 위에 있는지 확인
     bool IsOnTop(Collision collision, Transform vehicleTransform)
     {
         float playerY = transform.position.y;
@@ -142,7 +141,6 @@ public class VehicleRider : MonoBehaviour
         return false;
     }
 
-    // 플레이어 Collider/Renderer bounds 가져오기
     Bounds GetPlayerBounds()
     {
         Collider col = GetComponent<Collider>();
@@ -154,7 +152,6 @@ public class VehicleRider : MonoBehaviour
         return new Bounds(transform.position, Vector3.one);
     }
 
-    // 차량 bounds 가져오기
     Bounds GetVehicleBounds(Transform vehicleTransform)
     {
         Collider col = vehicleTransform.GetComponent<Collider>();

@@ -65,7 +65,7 @@ public class DataManager : MonoBehaviour
         LoadSkillDefinitions();
         Load();
         
-        // 게임 시작 시 Currency 리셋 (게임 실행 중에는 유지)
+        // 게임 시작 시 Currency 및 스테이지 리셋 (게임 실행 중에는 유지)
         // DontDestroyOnLoad로 인해 씬 전환 시에는 Awake가 다시 호출되지 않으므로
         // 실제로는 게임을 완전히 종료하고 다시 시작할 때만 실행됨
         Data.currency = 0;
@@ -74,16 +74,14 @@ public class DataManager : MonoBehaviour
         if (unlockAllStagesOnStart)
         {
             UnlockAllStages();
-            Debug.Log("[DataManager] 모든 스테이지 해금됨");
         }
-        
-        // 강제로 Stage 2 이상 해금 (기존 저장 데이터 무시)
-        if (Data.unlockedStage < 2)
+        else
         {
-            Data.unlockedStage = 4;
+            // 게임 시작 시 항상 Stage 1만 해금
+            Data.unlockedStage = 1;
         }
         
-        // 변경사항 저장 (Currency 리셋 포함)
+        // 변경사항 저장 (Currency 및 스테이지 리셋 포함)
         Save();
     }
 
@@ -134,7 +132,7 @@ public class DataManager : MonoBehaviour
         Data = new PlayerSaveData
         {
             currency = 0,
-            unlockedStage = 4, // 모든 스테이지 기본 해금 (테스트용)
+            unlockedStage = 1, // 처음 시작 시 Stage 1만 해금
             skills = new List<SkillData>(),
             stageRecords = new List<StageRecord>()
         };
