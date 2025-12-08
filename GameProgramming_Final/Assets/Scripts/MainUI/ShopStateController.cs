@@ -104,7 +104,7 @@ public class ShopStateController : BaseStateController
         int nextCost = GetNextCost(def, level);
         if (skillCostText != null)
         {
-            skillCostText.text = nextCost >= 0 ? nextCost.ToString() : "MAX";
+            skillCostText.text = nextCost >= 0 ? $"Cost: {nextCost} Points" : "MAX";
         }
 
         UpdateBuyButtonState(def, level, nextCost);
