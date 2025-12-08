@@ -6,6 +6,7 @@ public class GameManager : MonoBehaviour
     [Header("References")]
     public Transform player;
     public VehicleSpawner vehicleSpawner;
+    public TutorialManager tutorialManager;
     
     [Header("UI")]
     public GameObject gameOverPanel;
@@ -36,6 +37,9 @@ public class GameManager : MonoBehaviour
 
         if (vehicleSpawner == null)
             vehicleSpawner = FindObjectOfType<VehicleSpawner>();
+        
+        if (tutorialManager == null)
+            tutorialManager = FindObjectOfType<TutorialManager>();
 
         if (player != null)
         {
@@ -74,6 +78,9 @@ public class GameManager : MonoBehaviour
                         playerScript.SetCanMove(true);
                     }
                 }
+
+                if (tutorialManager != null)
+                    tutorialManager.StartTutorial();
             }
             return;
         }
