@@ -92,17 +92,8 @@ public class GameManager : MonoBehaviour
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
         
-        ResetGameData();
-        
         if (gameOverPanel != null)
             gameOverPanel.SetActive(true);
-    }
-    
-    void ResetGameData()
-    {
-        DataManager dm = DataManager.Instance ?? FindObjectOfType<DataManager>();
-        if (dm != null)
-            dm.ResetGameData();
     }
 
     public void LevelComplete()

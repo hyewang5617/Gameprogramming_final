@@ -145,12 +145,6 @@ public class DataManager : MonoBehaviour
         if (Data.stageRecords == null) Data.stageRecords = new List<StageRecord>();
     }
 
-    public void ResetGameData()
-    {
-        Data.skills.Clear();
-        skillDict.Clear();
-        Save();
-    }
     #endregion
 
     #region Currency
