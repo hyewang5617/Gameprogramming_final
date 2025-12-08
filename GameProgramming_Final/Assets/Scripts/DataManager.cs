@@ -65,6 +65,11 @@ public class DataManager : MonoBehaviour
         LoadSkillDefinitions();
         Load();
         
+        // 게임 시작 시 Currency 리셋 (게임 실행 중에는 유지)
+        // DontDestroyOnLoad로 인해 씬 전환 시에는 Awake가 다시 호출되지 않으므로
+        // 실제로는 게임을 완전히 종료하고 다시 시작할 때만 실행됨
+        Data.currency = 0;
+        
         // 개발용: 모든 스테이지 해금
         if (unlockAllStagesOnStart)
         {
@@ -76,9 +81,10 @@ public class DataManager : MonoBehaviour
         if (Data.unlockedStage < 2)
         {
             Data.unlockedStage = 4;
-            Save();
-            Debug.Log("[DataManager] Stage 2 이상 강제 해금");
         }
+        
+        // 변경사항 저장 (Currency 리셋 포함)
+        Save();
     }
 
     #region SaveLoad

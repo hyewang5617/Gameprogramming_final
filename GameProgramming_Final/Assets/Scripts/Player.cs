@@ -188,4 +188,16 @@ public class Player : MonoBehaviour
     {
         return rigid;
     }
+
+    // 외부에서 지면 상태 확인 (ScoreManager에서 사용)
+    public bool IsGrounded()
+    {
+        return isGrounded;
+    }
+
+    // 외부에서 차량 탑승 상태 확인 (ScoreManager에서 사용)
+    public bool IsOnVehicle()
+    {
+        return onVehicle;
+    }
 }
