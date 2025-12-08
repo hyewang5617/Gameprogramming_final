@@ -14,6 +14,12 @@ public class StageSelectController : BaseStateController
 
     [Header("Stage Buttons (assign in Inspector)")]
     [SerializeField] private StageButtonEntry[] stageButtons;
+    
+    // 기본 씬 이름 (Inspector에서 설정하지 않으면 사용)
+    private string GetDefaultSceneName(int stageNumber)
+    {
+        return $"Stage {stageNumber}";
+    }
 
     private DataManager Data => DataManager.Instance;
 
@@ -70,10 +76,11 @@ public class StageSelectController : BaseStateController
 
     private void OnStageButtonClicked(int stageNumber, string sceneName)
     {
+        // 씬 이름이 비어있으면 기본 씬 이름 사용
         if (string.IsNullOrEmpty(sceneName))
         {
-            Debug.LogWarning("StageSelectController: scene name is empty.");
-            return;
+            sceneName = GetDefaultSceneName(stageNumber);
+            Debug.LogWarning($"StageSelectController: scene name is empty. Using default: {sceneName}");
         }
 
         if (Data != null && stageNumber > 0 && !Data.IsStageUnlocked(stageNumber))
@@ -82,7 +89,8 @@ public class StageSelectController : BaseStateController
             return;
         }
 
+        Debug.Log($"Loading scene: {sceneName} (Stage {stageNumber})");
         SceneManager.LoadScene(sceneName);
-      base.Exit();
+        base.Exit();
     }
 }

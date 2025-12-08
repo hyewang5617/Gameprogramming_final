@@ -25,8 +25,8 @@ public class GameManager : MonoBehaviour
 
     void Start()
     {
-        Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
+        Cursor.lockState = CursorLockMode.Confined; // 화면 안에서만 이동, 클릭 인식 가능
+        Cursor.visible = false; // 커서는 숨김
         
         if (gameOverPanel != null)
             gameOverPanel.SetActive(false);
@@ -66,8 +66,8 @@ public class GameManager : MonoBehaviour
                 if (vehicleSpawner != null)
                     vehicleSpawner.ResetAllVehicleSpeeds();
                 
-                Cursor.lockState = CursorLockMode.Locked;
-                Cursor.visible = false;
+                Cursor.lockState = CursorLockMode.Confined; // 화면 안에서만 이동, 클릭 인식 가능
+                Cursor.visible = false; // 커서는 숨김
                 
                 if (player != null)
                 {

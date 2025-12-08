@@ -18,6 +18,8 @@ public class SkillManager : MonoBehaviour
 
     [Header("Time Slow")]
     [SerializeField] private KeyCode timeSlowKey = KeyCode.Q;
+    [SerializeField] private bool useMouseButton = false; // 마우스 버튼 사용 여부
+    [SerializeField] private int timeSlowMouseButton = 0; // 0=왼쪽, 1=오른쪽
     [SerializeField] private float defaultTimeSlowScale = 0.3f;
     [SerializeField] private float defaultTimeSlowGaugeMax = 5f;
     [SerializeField] private float defaultTimeSlowDrainPerSec = 1f;
@@ -30,6 +32,8 @@ public class SkillManager : MonoBehaviour
 
     [Header("Jetpack")]
     [SerializeField] private KeyCode jetpackKey = KeyCode.Space;
+    [SerializeField] private bool useJetpackMouseButton = false; // 마우스 버튼 사용 여부
+    [SerializeField] private int jetpackMouseButton = 1; // 0=왼쪽, 1=오른쪽
     [SerializeField] private float defaultJetpackForce = 15f;
     [SerializeField] private float defaultJetpackGaugeMax = 5f;
     [SerializeField] private float defaultJetpackDrainPerSec = 1f;
@@ -151,7 +155,9 @@ public class SkillManager : MonoBehaviour
     {
         if (!hasTimeSlow) return;
 
-        bool wantTimeSlow = Input.GetKey(timeSlowKey);
+        bool wantTimeSlow = useMouseButton 
+            ? Input.GetMouseButton(timeSlowMouseButton) 
+            : Input.GetKey(timeSlowKey);
         float minReady = timeSlowGaugeMax > 0f ? timeSlowGaugeMax * minRechargePercent : 0f;
         if (timeSlowDepleted && timeSlowGauge < minReady)
         {
@@ -210,7 +216,10 @@ public class SkillManager : MonoBehaviour
         if (!hasJetpack || player == null) return;
 
         float minReady = jetpackGaugeMax > 0f ? jetpackGaugeMax * minRechargePercent : 0f;
-        bool useJetpack = Input.GetKey(jetpackKey) && jetpackGauge > 0f;
+        bool keyPressed = useJetpackMouseButton 
+            ? Input.GetMouseButton(jetpackMouseButton) 
+            : Input.GetKey(jetpackKey);
+        bool useJetpack = keyPressed && jetpackGauge > 0f;
         if (jetpackDepleted && jetpackGauge < minReady)
         {
             useJetpack = false; // 충전 대기 상태에서는 입력을 무시

@@ -45,6 +45,9 @@ public class DataManager : MonoBehaviour
     // SkillDefinition 로드
     private SkillDefinition[] skillDefs;
 
+    [Header("Debug")]
+    [SerializeField] private bool unlockAllStagesOnStart = false; // 시작 시 모든 스테이지 해금 (개발용)
+    
     private void Awake()
     {
         if (Instance == null)
@@ -61,6 +64,21 @@ public class DataManager : MonoBehaviour
         // 필요한 초기화
         LoadSkillDefinitions();
         Load();
+        
+        // 개발용: 모든 스테이지 해금
+        if (unlockAllStagesOnStart)
+        {
+            UnlockAllStages();
+            Debug.Log("[DataManager] 모든 스테이지 해금됨");
+        }
+        
+        // 강제로 Stage 2 이상 해금 (기존 저장 데이터 무시)
+        if (Data.unlockedStage < 2)
+        {
+            Data.unlockedStage = 4;
+            Save();
+            Debug.Log("[DataManager] Stage 2 이상 강제 해금");
+        }
     }
 
     #region SaveLoad
@@ -110,7 +128,7 @@ public class DataManager : MonoBehaviour
         Data = new PlayerSaveData
         {
             currency = 0,
-            unlockedStage = 1,
+            unlockedStage = 4, // 모든 스테이지 기본 해금 (테스트용)
             skills = new List<SkillData>(),
             stageRecords = new List<StageRecord>()
         };
@@ -274,6 +292,13 @@ public class DataManager : MonoBehaviour
         PlayerPrefs.DeleteKey(SAVE_KEY);
         CreateDefaultData();
         skillDict.Clear();
+        Save();
+    }
+
+    // 모든 스테이지 해금 (개발/테스트용)
+    public void UnlockAllStages()
+    {
+        Data.unlockedStage = 999; // 충분히 큰 수로 설정
         Save();
     }
     #endregion
