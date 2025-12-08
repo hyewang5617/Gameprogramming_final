@@ -16,7 +16,7 @@ MonoBehaviour:
   displayName: TimeSlow
   description: 'Slow down time for a while. '
   maxLevel: 5
-  costPerLevel: c80000002c01000090010000f401000058020000
+  costPerLevel: 0000000000000000000000000000000000000000
   usesGauge: 1
   gaugeMaxPerLevel:
   - 3

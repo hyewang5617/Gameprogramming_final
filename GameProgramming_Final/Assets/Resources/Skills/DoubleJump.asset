@@ -16,7 +16,7 @@ MonoBehaviour:
   displayName: DoubleJump
   description: Enable air jump, allow additional  jump in the air.
   maxLevel: 2
-  costPerLevel: c80000002c010000
+  costPerLevel: 0000000000000000
   usesGauge: 0
   gaugeMaxPerLevel: []
   drainPerSecPerLevel: []
