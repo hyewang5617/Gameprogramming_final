@@ -65,12 +65,10 @@ public class DataManager : MonoBehaviour
         LoadSkillDefinitions();
         Load();
         
-        // 게임 시작 시 Currency, 스테이지, 스킬 레벨 리셋 (게임 실행 중에는 유지)
+        // 게임 시작 시 Currency 및 스테이지 리셋 (게임 실행 중에는 유지)
         // DontDestroyOnLoad로 인해 씬 전환 시에는 Awake가 다시 호출되지 않으므로
         // 실제로는 게임을 완전히 종료하고 다시 시작할 때만 실행됨
         Data.currency = 0;
-        Data.skills.Clear();
-        skillDict.Clear();
         
         // 개발용: 모든 스테이지 해금
         if (unlockAllStagesOnStart)
@@ -83,7 +81,7 @@ public class DataManager : MonoBehaviour
             Data.unlockedStage = 1;
         }
         
-        // 변경사항 저장 (Currency, 스테이지, 스킬 리셋 포함)
+        // 변경사항 저장 (Currency 및 스테이지 리셋 포함)
         Save();
     }
 
@@ -218,18 +216,14 @@ public class DataManager : MonoBehaviour
         int cur = GetSkillLevel(skillId);
         if (cur >= def.maxLevel) return false;
 
-        int cost;
         int nextIndex = cur; // costPerLevel[0] => level 1 cost
-        
-        if (def.costPerLevel != null && nextIndex >= 0 && nextIndex < def.costPerLevel.Length && def.costPerLevel[nextIndex] > 0)
+        if (def.costPerLevel == null || nextIndex < 0 || nextIndex >= def.costPerLevel.Length)
         {
-            cost = def.costPerLevel[nextIndex];
+            Debug.LogWarning($"TryUpgradeSkill: cost undefined for '{skillId}' level {cur + 1}");
+            return false;
         }
-        else
-        {
-            cost = (cur + 1) * 500;
-        }
-        
+
+        int cost = def.costPerLevel[nextIndex];
         if (Data.currency < cost) return false;
 
         Data.currency -= cost;

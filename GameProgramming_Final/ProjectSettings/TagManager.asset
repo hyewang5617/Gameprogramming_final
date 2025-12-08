@@ -6,7 +6,6 @@ TagManager:
   tags:
   - Vehicle
   - Goal
-  - Platform
   layers:
   - Default
   - TransparentFX
