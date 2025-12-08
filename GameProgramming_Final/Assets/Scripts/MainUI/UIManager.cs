@@ -32,7 +32,17 @@ public class UIManager : MonoBehaviour
         if (stageSelectPanel != null) stageSelectPanel.SetActive(false);
         if (shopPanel != null) shopPanel.SetActive(false);
 
-        ChangeToMain(0f);
+        // Stage 선택 화면으로 돌아가야 하는지 확인
+        if (PlayerPrefs.GetInt("returnToStageSelect", 0) == 1)
+        {
+            PlayerPrefs.DeleteKey("returnToStageSelect");
+            PlayerPrefs.Save();
+            ChangeToStageSelect(0f);
+        }
+        else
+        {
+            ChangeToMain(0f);
+        }
     }
 
     private BaseStateController GetController(GameObject panel)

@@ -11,19 +11,24 @@ public class VehiclePlatform : MonoBehaviour
     public float waypointReachDistance = 0.5f;
     public float rotationSpeed = 5f;
     public float moveForce = 2000f;
-    public float curveLookAhead = 0.3f; // 다음 웨이포인트를 미리 보는 비율 (0~1)
-    public float sharpTurnMultiplier = 2f; // 급격한 커브에서 회전 속도 배율
-    public float curveStartDistance = 2f; // 현재 웨이포인트에서 이 거리 이내일 때만 커브 시작
+    public float curveLookAhead = 0.3f;
+    public float sharpTurnMultiplier = 2f;
+    public float curveStartDistance = 2f;
     
     [Header("Despawn")]
     public bool destroyAtEnd = true;
     
+    [Header("Explosion")]
+    public GameObject explosionEffectPrefab;
+    public float stalledTimeThreshold = 5f;
+    
     public Action onDestroyed;
     
-    int currentWaypointIndex = 0; // 현재 목표 웨이포인트 인덱스
+    int currentWaypointIndex = 0;
     Rigidbody rigid;
-    bool initialized = false; // 초기화 완료 여부
-    float originalMoveForce; // 원래 moveForce 값
+    bool initialized = false;
+    float originalMoveForce;
+    float stalledTimer = 0f;
 
     void Awake()
     {
@@ -40,17 +45,8 @@ public class VehiclePlatform : MonoBehaviour
         originalMoveForce = moveForce;
     }
 
-    // moveForce 설정 (초기 스폰 시 빠른 속도용)
-    public void SetMoveForce(float force)
-    {
-        moveForce = force;
-    }
-
-    // moveForce를 원래 값으로 복원
-    public void ResetMoveForce()
-    {
-        moveForce = originalMoveForce;
-    }
+    public void SetMoveForce(float force) => moveForce = force;
+    public void ResetMoveForce() => moveForce = originalMoveForce;
 
     void Start()
     {
@@ -61,12 +57,9 @@ public class VehiclePlatform : MonoBehaviour
         }
         
         if (waypoints != null && waypoints.Length > 0)
-        {
             InitializeMovement();
-        }
     }
 
-    // 웨이포인트 방향으로 초기 회전 설정
     public void InitializeMovement()
     {
         if (waypoints == null || waypoints.Length == 0 || rigid == null || initialized) return;
@@ -98,7 +91,6 @@ public class VehiclePlatform : MonoBehaviour
         Transform target = waypoints[currentWaypointIndex];
         if (target == null) return;
         
-        // 부드러운 곡선을 위한 타겟 위치 계산 (다음 웨이포인트를 미리 고려)
         Vector3 targetPosition = GetCurvedTargetPosition();
         Vector3 direction = (targetPosition - transform.position).normalized;
         
@@ -107,8 +99,6 @@ public class VehiclePlatform : MonoBehaviour
             rigid.AddForce(direction * moveForce * Time.fixedDeltaTime, ForceMode.Acceleration);
             
             Quaternion targetRotation = Quaternion.LookRotation(direction);
-            
-            // 급격한 커브 감지 (90도 커브 등)
             float currentRotSpeed = rotationSpeed;
             if (currentWaypointIndex + 1 < waypoints.Length)
             {
@@ -122,7 +112,7 @@ public class VehiclePlatform : MonoBehaviour
                     nextDir.y = 0f;
                     
                     float angle = Vector3.Angle(currentDir, nextDir);
-                    if (angle > 45f) // 45도 이상이면 급격한 커브로 간주
+                    if (angle > 45f)
                         currentRotSpeed = rotationSpeed * sharpTurnMultiplier;
                 }
             }
@@ -131,11 +121,16 @@ public class VehiclePlatform : MonoBehaviour
         }
         
         Vector3 horizontalVelocity = new Vector3(rigid.velocity.x, 0, rigid.velocity.z);
-        if (horizontalVelocity.magnitude > speed)
+        float currentSpeed = horizontalVelocity.magnitude;
+        
+        if (currentSpeed > speed)
         {
             horizontalVelocity = horizontalVelocity.normalized * speed;
             rigid.velocity = new Vector3(horizontalVelocity.x, rigid.velocity.y, horizontalVelocity.z);
+            currentSpeed = speed;
         }
+        
+        CheckExplosionConditions(currentSpeed);
         
         float distance = Vector3.Distance(transform.position, target.position);
         if (distance < waypointReachDistance)
@@ -155,7 +150,6 @@ public class VehiclePlatform : MonoBehaviour
         }
     }
     
-    // 부드러운 곡선을 위한 타겟 위치 계산
     Vector3 GetCurvedTargetPosition()
     {
         if (currentWaypointIndex >= waypoints.Length) 
@@ -166,38 +160,31 @@ public class VehiclePlatform : MonoBehaviour
         
         float distanceToCurrent = Vector3.Distance(transform.position, currentWaypoint.position);
         
-        // 현재 웨이포인트에 충분히 가까워질 때까지는 현재 웨이포인트만 바라봄
         if (distanceToCurrent > curveStartDistance)
             return currentWaypoint.position;
         
-        // 다음 웨이포인트가 있고, 현재 웨이포인트에 가까워졌을 때만 커브 시작
         if (currentWaypointIndex + 1 < waypoints.Length)
         {
             Transform nextWaypoint = waypoints[currentWaypointIndex + 1];
             if (nextWaypoint != null)
             {
-                // 웨이포인트를 거의 지나간 경우에만 커브 시작 (뒤로 가는 것 방지)
                 Vector3 toWaypoint = (currentWaypoint.position - transform.position).normalized;
                 Vector3 vehicleForward = transform.forward;
                 float waypointBehind = Vector3.Dot(toWaypoint, vehicleForward);
                 
-                // 웨이포인트가 뒤에 있거나 거의 지나갔을 때만 커브 시작
                 if (waypointBehind < 0.5f && distanceToCurrent < curveStartDistance)
                 {
                     float totalDistance = Vector3.Distance(currentWaypoint.position, nextWaypoint.position);
                     
                     if (totalDistance > 0.01f)
                     {
-                        // 현재 웨이포인트에 가까울수록 다음 웨이포인트를 더 많이 바라봄
                         float normalizedDistance = Mathf.Clamp01(distanceToCurrent / curveStartDistance);
                         float t = Mathf.Lerp(curveLookAhead, 0f, normalizedDistance);
                         Vector3 curvedTarget = Vector3.Lerp(currentWaypoint.position, nextWaypoint.position, t);
                         
-                        // 보간된 타겟이 현재 위치보다 뒤에 있지 않도록 확인
                         Vector3 toCurvedTarget = (curvedTarget - transform.position).normalized;
                         float dot = Vector3.Dot(vehicleForward, toCurvedTarget);
                         
-                        // 앞으로 가는 방향이 아니면 현재 웨이포인트만 바라봄
                         if (dot > 0.3f)
                             return curvedTarget;
                     }
@@ -208,7 +195,41 @@ public class VehiclePlatform : MonoBehaviour
         return currentWaypoint.position;
     }
     
-    // 에디터에서 경로 시각화
+    void CheckExplosionConditions(float currentSpeed)
+    {
+        if (currentSpeed < 0.5f)
+        {
+            stalledTimer += Time.fixedDeltaTime;
+            if (stalledTimer >= stalledTimeThreshold)
+                Explode();
+        }
+        else
+        {
+            stalledTimer = 0f;
+        }
+    }
+    
+    void Explode()
+    {
+        if (explosionEffectPrefab != null)
+        {
+            GameObject explosion = Instantiate(explosionEffectPrefab, transform.position, Quaternion.identity);
+            ParticleSystem ps = explosion.GetComponent<ParticleSystem>();
+            if (ps != null)
+            {
+                ParticleSystem.MainModule main = ps.main;
+                Destroy(explosion, main.duration + main.startLifetime.constantMax);
+            }
+            else
+            {
+                Destroy(explosion, 3f);
+            }
+        }
+        
+        onDestroyed?.Invoke();
+        Destroy(gameObject);
+    }
+    
     void OnDrawGizmos()
     {
         if (waypoints == null || waypoints.Length < 2) return;
