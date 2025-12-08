@@ -10,10 +10,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 2521a7242c5e8154bb15937b7175be74, type: 3}
-  m_Name: TimeControll
+  m_Name: JetPack
   m_EditorClassIdentifier: 
-  skillId: 
-  displayName: 
-  description: 
-  maxLevel: 1
-  costPerLevel: 64000000
+  skillId: JetPack
+  displayName: JetPack
+  description: Allow player to stay on air for a while.
+  maxLevel: 5
+  costPerLevel: 00000000
