@@ -136,14 +136,27 @@ public class GameManager : MonoBehaviour
         UpdateCurrencyText(currentTotalCurrency);
 
         earnedPointText.gameObject.SetActive(true);
+        
+        // Air Point 표시 및 추가
         yield return StartCoroutine(CountUpScore("Air Point: +", 0, airPoint, 1.5f));
-        yield return StartCoroutine(CountUpCurrency(currentTotalCurrency, currentTotalCurrency + airPoint, 0.5f));
-        currentTotalCurrency += airPoint;
+        if (airPoint > 0)
+        {
+            yield return StartCoroutine(CountUpCurrency(currentTotalCurrency, currentTotalCurrency + airPoint, 0.5f));
+            dm.AddCurrency(airPoint);
+            currentTotalCurrency += airPoint;
+        }
 
         yield return new WaitForSecondsRealtime(pointDisplayDelay);
-        yield return StartCoroutine(CountUpScore("Time Attack Point: +", 0, timeAttackPoint, 1.5f));
-        yield return StartCoroutine(CountUpCurrency(currentTotalCurrency, currentTotalCurrency + timeAttackPoint, 0.5f));
         
+        // Time Attack Point 표시 및 추가
+        yield return StartCoroutine(CountUpScore("Time Attack Point: +", 0, timeAttackPoint, 1.5f));
+        if (timeAttackPoint > 0)
+        {
+            yield return StartCoroutine(CountUpCurrency(currentTotalCurrency, currentTotalCurrency + timeAttackPoint, 0.5f));
+            dm.AddCurrency(timeAttackPoint);
+        }
+        
+        // ScoreManager 점수 초기화 (다음 스테이지 준비 - StartGame()은 다음 스테이지 시작 시 호출됨)
         scoreManager.ClaimFinalScore();
     }
 

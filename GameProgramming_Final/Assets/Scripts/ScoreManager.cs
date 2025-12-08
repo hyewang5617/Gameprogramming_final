@@ -11,7 +11,7 @@ public class ScoreManager : MonoBehaviour
     public float scorePerSecondInAir = 100f;
 
     [Header("Time Decay Score")]
-    public float decayStartTime = 5f;
+    public float decayStartTime = 30f; // 이 시간 이후부터 1000점에서 깎기 시작
     public float decayRate = 1f;
     public float startingDecayScore = 1000f;
 
@@ -33,17 +33,8 @@ public class ScoreManager : MonoBehaviour
     public int GetFinalAirPoint() => Mathf.RoundToInt(airTimeScore);
     public int GetFinalTimeAttackPoint()
     {
-        if (gameStartTime <= 0f) return 0;
-        
-        float elapsedTime = Time.time - gameStartTime;
-        if (elapsedTime >= decayStartTime)
-        {
-            if (scoreDecaying)
-                return Mathf.RoundToInt(timeAttackScore);
-            else
-                return Mathf.RoundToInt(startingDecayScore);
-        }
-        return 0;
+        // 골인 시점의 timeAttackScore 반환 (이미 StopScoreDecay()로 멈춘 상태)
+        return Mathf.RoundToInt(timeAttackScore);
     }
 
     void Start()
@@ -91,11 +82,11 @@ public class ScoreManager : MonoBehaviour
 
     void HandleTimeDecayScore()
     {
-        if (gameStartTime <= 0f)
-            gameStartTime = Time.time;
+        if (gameStartTime <= 0f) return; // StartGame()이 호출되지 않았으면 아무것도 하지 않음
 
         float elapsedTime = Time.time - gameStartTime;
         
+        // 지정한 시간(decayStartTime) 이후부터 1000점에서 깎기 시작
         if (elapsedTime >= decayStartTime && !scoreDecaying)
         {
             scoreDecaying = true;
@@ -103,6 +94,7 @@ public class ScoreManager : MonoBehaviour
             currentScore += startingDecayScore;
         }
 
+        // 점수 감소 중
         if (scoreDecaying)
         {
             float decayAmount = decayRate * Time.deltaTime;
@@ -119,29 +111,15 @@ public class ScoreManager : MonoBehaviour
         gameActive = false;
     }
 
+    // ClaimFinalScore는 더 이상 사용되지 않음 (GameManager에서 직접 추가)
+    // 하지만 호환성을 위해 유지
     public void ClaimFinalScore()
     {
-        if (dataManager != null)
-        {
-            if (gameStartTime > 0f)
-            {
-                float elapsedTime = Time.time - gameStartTime;
-                if (elapsedTime >= decayStartTime && !scoreDecaying)
-                {
-                    scoreDecaying = true;
-                    timeAttackScore = startingDecayScore;
-                    currentScore += startingDecayScore;
-                }
-            }
-            
-            int finalScore = Mathf.RoundToInt(currentScore);
-            earnedCurrency = finalScore;
-            dataManager.AddCurrency(finalScore);
-            
-            currentScore = 0f;
-            airTimeScore = 0f;
-            timeAttackScore = 0f;
-        }
+        // GameManager에서 이미 점수를 추가했으므로 여기서는 초기화만 수행
+        currentScore = 0f;
+        airTimeScore = 0f;
+        timeAttackScore = 0f;
+        earnedCurrency = 0;
     }
 
     public void StartGame()

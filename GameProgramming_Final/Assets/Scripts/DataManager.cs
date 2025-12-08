@@ -282,14 +282,6 @@ public class DataManager : MonoBehaviour
     #endregion
 
     #region Utilities (개발용)
-    public void ClearAllData()
-    {
-        PlayerPrefs.DeleteKey(SAVE_KEY);
-        CreateDefaultData();
-        skillDict.Clear();
-        Save();
-    }
-
     // 모든 스테이지 해금 (개발/테스트용)
     public void UnlockAllStages()
     {
