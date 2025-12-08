@@ -21,9 +21,6 @@ public class GameManager : MonoBehaviour
     public TextMeshProUGUI earnedPointText;
     public float pointDisplayDelay = 1f;
     
-    [Header("Death Settings")]
-    public float deathHeight = -10f;
-
     bool isGameOver = false;
     bool isLevelComplete = false;
     bool gameStarted = false;
@@ -40,6 +37,12 @@ public class GameManager : MonoBehaviour
         if (loadingPanel != null) loadingPanel.SetActive(true);
         if (earnedPointText != null) earnedPointText.gameObject.SetActive(false);
 
+        if (player == null)
+        {
+            GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
+            if (playerObj != null) player = playerObj.transform;
+        }
+        
         if (vehicleSpawner == null) vehicleSpawner = FindObjectOfType<VehicleSpawner>();
         if (tutorialManager == null) tutorialManager = FindObjectOfType<TutorialManager>();
         if (scoreManager == null) scoreManager = FindObjectOfType<ScoreManager>();
@@ -64,6 +67,12 @@ public class GameManager : MonoBehaviour
                 Cursor.lockState = CursorLockMode.Confined;
                 Cursor.visible = false;
                 
+                if (player == null)
+                {
+                    GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
+                    if (playerObj != null) player = playerObj.transform;
+                }
+                
                 Player playerScript = player?.GetComponent<Player>();
                 if (playerScript != null)
                 {
@@ -83,11 +92,9 @@ public class GameManager : MonoBehaviour
             return;
         }
 
-        if (player != null && player.position.y < deathHeight)
-            GameOver();
     }
 
-    void GameOver()
+    public void GameOver()
     {
         if (isGameOver) return;
         
@@ -97,7 +104,9 @@ public class GameManager : MonoBehaviour
         Cursor.visible = true;
         
         if (gameOverPanel != null)
+        {
             gameOverPanel.SetActive(true);
+        }
     }
 
     public void LevelComplete()
