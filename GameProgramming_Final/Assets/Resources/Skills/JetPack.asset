@@ -15,5 +15,24 @@ MonoBehaviour:
   skillId: JetPack
   displayName: JetPack
   description: Allow player to stay on air for a while.
-  maxLevel: 5
-  costPerLevel: 00000000
+  maxLevel: 3
+  costPerLevel: 000000000000000000000000
+  usesGauge: 1
+  gaugeMaxPerLevel:
+  - 1
+  - 1.5
+  - 2
+  drainPerSecPerLevel:
+  - 1
+  - 1
+  - 1
+  regenPerSecPerLevel:
+  - 0.3
+  - 0.5
+  - 0.7
+  timeScalePerLevel: []
+  forcePerLevel:
+  - 6
+  - 8
+  - 10
+  extraJumpPerLevel: 
