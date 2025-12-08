@@ -119,11 +119,31 @@ public class Player : MonoBehaviour
 
     void OnCollisionEnter(Collision collision)
     {
+        if (collision.gameObject.CompareTag("Platform"))
+        {
+            GameManager gm = FindObjectOfType<GameManager>();
+            if (gm != null)
+            {
+                gm.GameOver();
+            }
+            return;
+        }
+        
         CheckGrounded(collision);
     }
 
     void OnCollisionStay(Collision collision)
     {
+        if (collision.gameObject.CompareTag("Platform"))
+        {
+            GameManager gm = FindObjectOfType<GameManager>();
+            if (gm != null)
+            {
+                gm.GameOver();
+            }
+            return;
+        }
+        
         CheckGrounded(collision);
     }
 

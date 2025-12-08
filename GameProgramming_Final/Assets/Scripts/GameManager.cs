@@ -2,7 +2,6 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using TMPro;
 using System.Collections;
-using System.Text.RegularExpressions;
 
 public class GameManager : MonoBehaviour
 {
@@ -11,6 +10,9 @@ public class GameManager : MonoBehaviour
     public VehicleSpawner vehicleSpawner;
     public TutorialManager tutorialManager;
     public ScoreManager scoreManager;
+    
+    [Header("Stage Settings")]
+    public string[] stageSceneNames;
     
     [Header("UI")]
     public GameObject gameOverPanel;
@@ -21,9 +23,6 @@ public class GameManager : MonoBehaviour
     public TextMeshProUGUI earnedPointText;
     public float pointDisplayDelay = 1f;
     
-    [Header("Death Settings")]
-    public float deathHeight = -10f;
-
     bool isGameOver = false;
     bool isLevelComplete = false;
     bool gameStarted = false;
@@ -82,12 +81,9 @@ public class GameManager : MonoBehaviour
             RestartLevel();
             return;
         }
-
-        if (player != null && player.position.y < deathHeight)
-            GameOver();
     }
 
-    void GameOver()
+    public void GameOver()
     {
         if (isGameOver) return;
         
@@ -96,8 +92,17 @@ public class GameManager : MonoBehaviour
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
         
+        ResetGameData();
+        
         if (gameOverPanel != null)
             gameOverPanel.SetActive(true);
+    }
+    
+    void ResetGameData()
+    {
+        DataManager dm = DataManager.Instance ?? FindObjectOfType<DataManager>();
+        if (dm != null)
+            dm.ResetGameData();
     }
 
     public void LevelComplete()
@@ -133,12 +138,10 @@ public class GameManager : MonoBehaviour
         int airPoint = scoreManager.GetFinalAirPoint();
         int timeAttackPoint = scoreManager.GetFinalTimeAttackPoint();
         
-        scoreManager.ClaimFinalScore();
-        
         DataManager dm = DataManager.Instance ?? FindObjectOfType<DataManager>();
         if (dm == null) yield break;
         
-        int currentTotalCurrency = dm.GetCurrency() - airPoint - timeAttackPoint;
+        int currentTotalCurrency = dm.GetCurrency();
         UpdateCurrencyText(currentTotalCurrency);
 
         earnedPointText.gameObject.SetActive(true);
@@ -149,6 +152,8 @@ public class GameManager : MonoBehaviour
         yield return new WaitForSecondsRealtime(pointDisplayDelay);
         yield return StartCoroutine(CountUpScore("Time Attack Point: +", 0, timeAttackPoint, 1.5f));
         yield return StartCoroutine(CountUpCurrency(currentTotalCurrency, currentTotalCurrency + timeAttackPoint, 0.5f));
+        
+        scoreManager.ClaimFinalScore();
     }
 
     IEnumerator CountUpScore(string prefix, int startValue, int targetValue, float duration)
@@ -205,30 +210,44 @@ public class GameManager : MonoBehaviour
 
     void UnlockNextStage()
     {
-        string currentSceneName = SceneManager.GetActiveScene().name;
-        int currentStage = GetStageNumberFromSceneName(currentSceneName);
-        
-        if (currentStage > 0)
+        DataManager dm = DataManager.Instance ?? FindObjectOfType<DataManager>();
+        if (dm == null)
         {
-            DataManager dm = DataManager.Instance ?? FindObjectOfType<DataManager>();
-            if (dm != null)
+            Debug.LogError("[GameManager] DataManager를 찾을 수 없습니다!");
+            return;
+        }
+        
+        if (stageSceneNames == null || stageSceneNames.Length == 0)
+        {
+            Debug.LogWarning("[GameManager] stageSceneNames 배열이 비어있습니다!");
+            return;
+        }
+        
+        string currentSceneName = SceneManager.GetActiveScene().name;
+        int currentStage = -1;
+        
+        for (int i = 0; i < stageSceneNames.Length; i++)
+        {
+            if (string.IsNullOrEmpty(stageSceneNames[i])) continue;
+            
+            string sceneName = stageSceneNames[i].Trim();
+            if (sceneName == currentSceneName || 
+                sceneName.Contains(currentSceneName) || 
+                currentSceneName.Contains(sceneName))
             {
-                int nextStage = currentStage + 1;
-                dm.UnlockStage(nextStage);
+                currentStage = i + 1;
+                break;
             }
         }
-    }
-
-    int GetStageNumberFromSceneName(string sceneName)
-    {
-        if (string.IsNullOrEmpty(sceneName)) return 0;
         
-        Match match = Regex.Match(sceneName, @"Stage\s*(\d+)", RegexOptions.IgnoreCase);
-        if (match.Success && match.Groups.Count > 1)
+        if (currentStage < 0)
         {
-            if (int.TryParse(match.Groups[1].Value, out int stageNumber))
-                return stageNumber;
+            Debug.LogWarning($"[GameManager] 현재 씬 '{currentSceneName}'을 stageSceneNames 배열에서 찾을 수 없습니다!");
+            return;
         }
-        return 0;
+        
+        int nextStage = currentStage + 1;
+        dm.UnlockStage(nextStage);
+        Debug.Log($"[GameManager] Stage {currentStage} 클리어 → Stage {nextStage} 해금 완료!");
     }
 }

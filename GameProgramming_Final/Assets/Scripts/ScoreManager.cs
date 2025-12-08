@@ -11,7 +11,7 @@ public class ScoreManager : MonoBehaviour
     public float scorePerSecondInAir = 100f;
 
     [Header("Time Decay Score")]
-    public float decayStartTime = 30f;
+    public float decayStartTime = 5f;
     public float decayRate = 1f;
     public float startingDecayScore = 1000f;
 
@@ -33,9 +33,17 @@ public class ScoreManager : MonoBehaviour
     public int GetFinalAirPoint() => Mathf.RoundToInt(airTimeScore);
     public int GetFinalTimeAttackPoint()
     {
-        if (!scoreDecaying)
-            return Mathf.RoundToInt(startingDecayScore);
-        return Mathf.RoundToInt(timeAttackScore);
+        if (gameStartTime <= 0f) return 0;
+        
+        float elapsedTime = Time.time - gameStartTime;
+        if (elapsedTime >= decayStartTime)
+        {
+            if (scoreDecaying)
+                return Mathf.RoundToInt(timeAttackScore);
+            else
+                return Mathf.RoundToInt(startingDecayScore);
+        }
+        return 0;
     }
 
     void Start()
@@ -48,8 +56,6 @@ public class ScoreManager : MonoBehaviour
         
         if (dataManager == null)
             dataManager = DataManager.Instance;
-        
-        StartGame();
     }
 
     void Update()
@@ -117,11 +123,15 @@ public class ScoreManager : MonoBehaviour
     {
         if (dataManager != null)
         {
-            if (!scoreDecaying)
+            if (gameStartTime > 0f)
             {
-                scoreDecaying = true;
-                timeAttackScore = startingDecayScore;
-                currentScore += startingDecayScore;
+                float elapsedTime = Time.time - gameStartTime;
+                if (elapsedTime >= decayStartTime && !scoreDecaying)
+                {
+                    scoreDecaying = true;
+                    timeAttackScore = startingDecayScore;
+                    currentScore += startingDecayScore;
+                }
             }
             
             int finalScore = Mathf.RoundToInt(currentScore);
