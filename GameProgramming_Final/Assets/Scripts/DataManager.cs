@@ -65,7 +65,7 @@ public class DataManager : MonoBehaviour
         LoadSkillDefinitions();
         Load();
         
-        // 게임 시작 시 Currency 리셋 (게임 실행 중에는 유지)
+        // 게임 시작 시 Currency 및 스테이지 리셋 (게임 실행 중에는 유지)
         // DontDestroyOnLoad로 인해 씬 전환 시에는 Awake가 다시 호출되지 않으므로
         // 실제로는 게임을 완전히 종료하고 다시 시작할 때만 실행됨
         Data.currency = 0;
@@ -74,18 +74,14 @@ public class DataManager : MonoBehaviour
         if (unlockAllStagesOnStart)
         {
             UnlockAllStages();
-            Debug.Log("[DataManager] 모든 스테이지 해금됨");
         }
         else
         {
-            // 기본적으로 Stage 1만 해금 (최소값 보장)
-            if (Data.unlockedStage < 1)
-            {
-                Data.unlockedStage = 1;
-            }
+            // 게임 시작 시 항상 Stage 1만 해금
+            Data.unlockedStage = 1;
         }
         
-        // 변경사항 저장 (Currency 리셋 포함)
+        // 변경사항 저장 (Currency 및 스테이지 리셋 포함)
         Save();
     }
 
@@ -129,15 +125,6 @@ public class DataManager : MonoBehaviour
         }
 
         RebuildCaches();
-        
-        // 처음 시작 시 (저장 데이터가 없거나 unlockedStage가 1보다 큰 경우) Stage 1만 해금
-        // 단, unlockAllStagesOnStart가 true이면 무시
-        if (!unlockAllStagesOnStart && !PlayerPrefs.HasKey("has_saved_stage_progress"))
-        {
-            Data.unlockedStage = 1;
-            PlayerPrefs.SetInt("has_saved_stage_progress", 1);
-            PlayerPrefs.Save();
-        }
     }
 
     private void CreateDefaultData()
@@ -264,8 +251,6 @@ public class DataManager : MonoBehaviour
         if (stage > Data.unlockedStage)
         {
             Data.unlockedStage = stage;
-            PlayerPrefs.SetInt("has_saved_stage_progress", 1); // 게임 진행 중임을 표시
-            PlayerPrefs.Save();
             Save();
         }
     }
