@@ -20,7 +20,7 @@ public class Player : MonoBehaviour
     Rigidbody rigid;
     bool onVehicle = false;
     bool canMove = true;
-    Vector3 moveInput; // 현재 이동 입력 값
+    Vector3 moveInput;
     int maxExtraJumps = 0;
     int extraJumpsRemaining = 0;
 
@@ -33,7 +33,7 @@ public class Player : MonoBehaviour
         {
             rigid.freezeRotation = true;
             rigid.drag = 0.5f;
-            rigid.angularDrag = 5f; // 원통 회전 저항
+            rigid.angularDrag = 5f;
             rigid.interpolation = RigidbodyInterpolation.Interpolate;
             rigid.collisionDetectionMode = CollisionDetectionMode.Continuous;
         }
@@ -89,14 +89,12 @@ public class Player : MonoBehaviour
         }
     }
 
-    // 낙하 속도 제한
     void LimitFallSpeed()
     {
         if (rigid.velocity.y < -maxFallSpeed)
             rigid.velocity = new Vector3(rigid.velocity.x, -maxFallSpeed, rigid.velocity.z);
     }
 
-    // 카메라 기준 이동 벡터 계산
     Vector3 GetMoveVector()
     {
         float h = Input.GetAxisRaw("Horizontal");
@@ -114,27 +112,10 @@ public class Player : MonoBehaviour
         return (right * h + forward * v).normalized * moveSpeed;
     }
 
-    // 외부 스크립트에서 플레이어 입력 가져오기
-    public Vector3 GetPlayerInput()
-    {
-        return canMove ? GetMoveVector() : Vector3.zero;
-    }
-
-    public void SetOnVehicle(bool onVehicle)
-    {
-        this.onVehicle = onVehicle;
-    }
-
-    public void SetCanMove(bool canMove)
-    {
-        this.canMove = canMove;
-    }
-
-    // 게임 시작 시 물리 활성화
-    public void ReleaseFromStart()
-    {
-        rigid.isKinematic = false;
-    }
+    public Vector3 GetPlayerInput() => canMove ? GetMoveVector() : Vector3.zero;
+    public void SetOnVehicle(bool onVehicle) => this.onVehicle = onVehicle;
+    public void SetCanMove(bool canMove) => this.canMove = canMove;
+    public void ReleaseFromStart() => rigid.isKinematic = false;
 
     void OnCollisionEnter(Collision collision)
     {
@@ -152,7 +133,6 @@ public class Player : MonoBehaviour
             isGrounded = false;
     }
 
-    // 충돌면이 지면인지 확인
     void CheckGrounded(Collision collision)
     {
         if (collision.gameObject.CompareTag("Vehicle")) return;
@@ -168,14 +148,10 @@ public class Player : MonoBehaviour
         }
     }
 
-    // 외부에서 지면 상태 설정 (VehicleRider에서 사용)
     public void SetGrounded(bool grounded)
     {
         isGrounded = grounded;
-        if (grounded)
-        {
-            extraJumpsRemaining = maxExtraJumps;
-        }
+        if (grounded) extraJumpsRemaining = maxExtraJumps;
     }
 
     public void SetMaxExtraJumps(int count)
@@ -184,20 +160,7 @@ public class Player : MonoBehaviour
         extraJumpsRemaining = maxExtraJumps;
     }
 
-    public Rigidbody GetRigidbody()
-    {
-        return rigid;
-    }
-
-    // 외부에서 지면 상태 확인 (ScoreManager에서 사용)
-    public bool IsGrounded()
-    {
-        return isGrounded;
-    }
-
-    // 외부에서 차량 탑승 상태 확인 (ScoreManager에서 사용)
-    public bool IsOnVehicle()
-    {
-        return onVehicle;
-    }
+    public Rigidbody GetRigidbody() => rigid;
+    public bool IsGrounded() => isGrounded;
+    public bool IsOnVehicle() => onVehicle;
 }
