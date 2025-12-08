@@ -16,7 +16,10 @@ MonoBehaviour:
   displayName: JetPack
   description: Allow player to stay on air for a while.
   maxLevel: 3
-  costPerLevel: 000000000000000000000000
+  costPerLevel:
+  - 500
+  - 1000
+  - 1500
   usesGauge: 1
   gaugeMaxPerLevel:
   - 1
