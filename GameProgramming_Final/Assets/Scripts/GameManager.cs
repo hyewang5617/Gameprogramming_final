@@ -10,6 +10,7 @@ public class GameManager : MonoBehaviour
     public VehicleSpawner vehicleSpawner;
     public TutorialManager tutorialManager;
     public ScoreManager scoreManager;
+    public SkillManager skillManager;
     
     [Header("Stage Settings")]
     public string[] stageSceneNames;
@@ -26,6 +27,7 @@ public class GameManager : MonoBehaviour
     bool isGameOver = false;
     bool isLevelComplete = false;
     bool gameStarted = false;
+    bool canReturnToMain = true;
 
     public bool IsGameStarted() => gameStarted;
 
@@ -42,6 +44,8 @@ public class GameManager : MonoBehaviour
         if (vehicleSpawner == null) vehicleSpawner = FindObjectOfType<VehicleSpawner>();
         if (tutorialManager == null) tutorialManager = FindObjectOfType<TutorialManager>();
         if (scoreManager == null) scoreManager = FindObjectOfType<ScoreManager>();
+        if (skillManager == null) skillManager = FindObjectOfType<SkillManager>();
+        if (skillManager != null) skillManager.SetSkillsEnabled(false);
 
         Player playerScript = player?.GetComponent<Player>();
         if (playerScript != null) playerScript.SetCanMove(false);
@@ -72,11 +76,12 @@ public class GameManager : MonoBehaviour
 
                 if (scoreManager != null) scoreManager.StartGame();
                 if (tutorialManager != null) tutorialManager.StartTutorial();
+                if (skillManager != null) skillManager.SetSkillsEnabled(true);
             }
             return;
         }
 
-        if ((isGameOver || isLevelComplete) && Input.anyKeyDown)
+        if ((isGameOver || isLevelComplete) && canReturnToMain && Input.anyKeyDown)
         {
             RestartLevel();
             return;
@@ -88,12 +93,14 @@ public class GameManager : MonoBehaviour
         if (isGameOver) return;
         
         isGameOver = true;
+        DisableSkillManager();
         Time.timeScale = 0f;
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
         
         if (gameOverPanel != null)
             gameOverPanel.SetActive(true);
+        AudioManager.Instance?.PlayGameOverSFX();
     }
 
     public void LevelComplete()
@@ -101,15 +108,29 @@ public class GameManager : MonoBehaviour
         if (isLevelComplete) return;
         
         isLevelComplete = true;
+        DisableSkillManager();
+        canReturnToMain = false;
         Time.timeScale = 0f;
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
         
         if (levelCompletePanel != null) levelCompletePanel.SetActive(true);
         if (scoreManager != null) scoreManager.StopScoreDecay();
+        AudioManager.Instance?.PlayLevelCompleteSFX();
         
         UnlockNextStage();
         StartCoroutine(ShowEarnedPointsSequentially());
+    }
+
+    void DisableSkillManager()
+    {
+        if (skillManager == null) skillManager = FindObjectOfType<SkillManager>();
+        if (skillManager == null) return;
+
+        // 종료 시 스킬 입력 및 타임슬로우가 더 이상 동작하지 않도록 비활성화
+        skillManager.OnGameEnded();
+        if (skillManager.isActiveAndEnabled)
+            skillManager.enabled = false;
     }
 
     void UpdateCurrencyDisplay()
@@ -124,13 +145,22 @@ public class GameManager : MonoBehaviour
 
     IEnumerator ShowEarnedPointsSequentially()
     {
-        if (earnedPointText == null || scoreManager == null) yield break;
+        canReturnToMain = false;
+        if (earnedPointText == null || scoreManager == null)
+        {
+            canReturnToMain = true;
+            yield break;
+        }
 
         int airPoint = scoreManager.GetFinalAirPoint();
         int timeAttackPoint = scoreManager.GetFinalTimeAttackPoint();
         
         DataManager dm = DataManager.Instance ?? FindObjectOfType<DataManager>();
-        if (dm == null) yield break;
+        if (dm == null)
+        {
+            canReturnToMain = true;
+            yield break;
+        }
         
         int currentTotalCurrency = dm.GetCurrency();
         UpdateCurrencyText(currentTotalCurrency);
@@ -158,6 +188,7 @@ public class GameManager : MonoBehaviour
         
         // ScoreManager 점수 초기화 (다음 스테이지 준비 - StartGame()은 다음 스테이지 시작 시 호출됨)
         scoreManager.ClaimFinalScore();
+        canReturnToMain = true;
     }
 
     IEnumerator CountUpScore(string prefix, int startValue, int targetValue, float duration)

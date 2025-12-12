@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillId: JetPack
   displayName: JetPack
-  description: Allow player to stay on air for a while. right click
+  description: Allow player to stay on air for a while. right click to active.
   maxLevel: 3
   costPerLevel: c80000002c01000090010000
   usesGauge: 1

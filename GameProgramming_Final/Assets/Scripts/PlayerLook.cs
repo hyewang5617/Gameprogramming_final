@@ -3,9 +3,14 @@ using UnityEngine;
 public class PlayerLook : MonoBehaviour
 {
     [Header("Look Settings")]
-    public float sensitivity = 120f;
+    public float sensitivity = 90f;
     
     float yaw = 0f; // Y축 회전 각도
+
+    void Start()
+    {
+        yaw = transform.eulerAngles.y;
+    }
 
     void Update()
     {

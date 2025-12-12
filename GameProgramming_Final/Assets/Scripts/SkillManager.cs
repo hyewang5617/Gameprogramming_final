@@ -20,7 +20,7 @@ public class SkillManager : MonoBehaviour
     [SerializeField] private KeyCode timeSlowKey = KeyCode.Q;
     [SerializeField] private bool useMouseButton = false; // 마우스 버튼 사용 여부
     [SerializeField] private int timeSlowMouseButton = 0; // 0=왼쪽, 1=오른쪽
-    [SerializeField] private float defaultTimeSlowScale = 0.3f;
+    [SerializeField] private float defaultTimeSlowScale = 0.7f;
     [SerializeField] private float defaultTimeSlowGaugeMax = 5f;
     [SerializeField] private float defaultTimeSlowDrainPerSec = 1f;
     [SerializeField] private float defaultTimeSlowRegenPerSec = 0.5f;
@@ -41,6 +41,12 @@ public class SkillManager : MonoBehaviour
     [SerializeField] private Image jetpackGaugeFill;
     [SerializeField] private GameObject jetpackGaugeBackground;
     [SerializeField] private CanvasGroup jetpackGaugeGroup;
+    [Header("Jetpack Audio")]
+    [SerializeField] private AudioClip jetpackLoopClip;
+    [SerializeField, Range(0f, 1f)] private float jetpackAudioVolume = 1f;
+    [Header("Time Slow Audio")]
+    [SerializeField] private AudioClip timeSlowClip;
+    [SerializeField, Range(0f, 1f)] private float timeSlowAudioVolume = 1f;
 
     [Header("Double Jump")]
     [SerializeField] private int defaultExtraJumpCount = 1;
@@ -72,6 +78,8 @@ public class SkillManager : MonoBehaviour
     private bool jetpackWasFull = true;
     private bool timeSlowDepleted = false;
     private bool jetpackDepleted = false;
+    private bool gameEnded = false;
+    private bool skillsLocked = true;
 
     private void Awake()
     {
@@ -143,6 +151,8 @@ public class SkillManager : MonoBehaviour
 
     private void Update()
     {
+        if (gameEnded || skillsLocked) return;
+
         float dt = Time.deltaTime;
 
         HandleTimeSlow(dt);
@@ -200,6 +210,7 @@ public class SkillManager : MonoBehaviour
         Time.timeScale = timeSlowScale;
         Time.fixedDeltaTime = originalFixedDeltaTime * timeSlowScale;
         FadeOverlay(1f);
+        PlayTimeSlowAudio();
     }
 
     private void DisableTimeSlow()
@@ -209,11 +220,16 @@ public class SkillManager : MonoBehaviour
         Time.timeScale = 1f;
         Time.fixedDeltaTime = originalFixedDeltaTime;
         FadeOverlay(0f);
+        StopTimeSlowAudio();
     }
 
     private void HandleJetpack(float dt)
     {
-        if (!hasJetpack || player == null) return;
+        if (!hasJetpack || player == null)
+        {
+            StopJetpackAudio();
+            return;
+        }
 
         float minReady = jetpackGaugeMax > 0f ? jetpackGaugeMax * minRechargePercent : 0f;
         bool keyPressed = useJetpackMouseButton 
@@ -231,6 +247,7 @@ public class SkillManager : MonoBehaviour
             {
                 rb.AddForce(Vector3.up * jetpackForce, ForceMode.Acceleration);
             }
+            StartJetpackAudio();
             jetpackGauge = Mathf.Max(0f, jetpackGauge - jetpackDrainPerSec * dt);
             if (jetpackGauge <= 0f)
             {
@@ -239,6 +256,7 @@ public class SkillManager : MonoBehaviour
         }
         else
         {
+            StopJetpackAudio();
             jetpackGauge = Mathf.Min(jetpackGauge + jetpackRegenPerSec * dt, jetpackGaugeMax);
             if (jetpackDepleted && jetpackGauge >= minReady)
             {
@@ -284,9 +302,82 @@ public class SkillManager : MonoBehaviour
         }
     }
 
+    private void SetGaugeUIVisible(CanvasGroup group, GameObject background, bool visible)
+    {
+        if (group != null)
+        {
+            group.alpha = visible ? 1f : 0f;
+            group.blocksRaycasts = visible;
+            group.interactable = visible;
+        }
+        if (background != null)
+        {
+            background.SetActive(visible);
+        }
+    }
+
     private void OnDisable()
     {
         DisableTimeSlow();
+        StopJetpackAudio();
+        StopTimeSlowAudio();
+    }
+
+    public void OnGameEnded()
+    {
+        if (gameEnded) return;
+        gameEnded = true;
+        skillsLocked = true;
+        DisableTimeSlow();
+        Time.timeScale = 1f;
+        Time.fixedDeltaTime = originalFixedDeltaTime;
+        StopJetpackAudio();
+        StopTimeSlowAudio();
+    }
+
+    public void SetSkillsEnabled(bool enabled)
+    {
+        skillsLocked = !enabled;
+        if (skillsLocked)
+        {
+            DisableTimeSlow();
+            StopJetpackAudio();
+            StopTimeSlowAudio();
+            SetGaugeUIVisible(timeSlowGaugeGroup, timeSlowGaugeBackground, false);
+            SetGaugeUIVisible(jetpackGaugeGroup, jetpackGaugeBackground, false);
+        }
+        else
+        {
+            SetGaugeUIVisible(timeSlowGaugeGroup, timeSlowGaugeBackground, true);
+            SetGaugeUIVisible(jetpackGaugeGroup, jetpackGaugeBackground, true);
+            UpdateGaugeUI(timeSlowGaugeFill, timeSlowGauge, timeSlowGaugeMax, timeSlowGaugeBackground, timeSlowGaugeGroup, ref timeSlowWasFull);
+            UpdateGaugeUI(jetpackGaugeFill, jetpackGauge, jetpackGaugeMax, jetpackGaugeBackground, jetpackGaugeGroup, ref jetpackWasFull);
+        }
+    }
+
+    private void StartJetpackAudio()
+    {
+        if (jetpackLoopClip == null) return;
+        if (AudioManager.Instance == null) return;
+        AudioManager.Instance.PlayLoopingSFX(jetpackLoopClip, jetpackAudioVolume);
+    }
+
+    private void StopJetpackAudio()
+    {
+        if (AudioManager.Instance == null) return;
+        AudioManager.Instance.StopLoopingSFX(jetpackLoopClip);
+    }
+
+    private void PlayTimeSlowAudio()
+    {
+        if (AudioManager.Instance == null || timeSlowClip == null) return;
+        AudioManager.Instance.PlayStoppableSFX(timeSlowClip, timeSlowAudioVolume);
+    }
+
+    private void StopTimeSlowAudio()
+    {
+        if (AudioManager.Instance == null || timeSlowClip == null) return;
+        AudioManager.Instance.StopStoppableSFX(timeSlowClip);
     }
 
     private void FadeOverlay(float targetAlpha)

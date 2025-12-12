@@ -3,7 +3,7 @@ using UnityEngine;
 public class CameraLook : MonoBehaviour
 {
     [Header("Look Settings")]
-    public float sensitivity = 120f;
+    public float sensitivity = 90f;
     
     float pitch = 0f; // X축 회전 각도 (위아래)
 

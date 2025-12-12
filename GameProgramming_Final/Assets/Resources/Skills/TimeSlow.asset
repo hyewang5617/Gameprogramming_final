@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillId: TimeSlow
   displayName: TimeSlow
-  description: Slow down time for a while. left click
+  description: Slow down time for a while. left click to active.
   maxLevel: 5
   costPerLevel: c80000002c01000090010000f401000058020000
   usesGauge: 1
